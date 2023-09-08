@@ -1,11 +1,5 @@
 #include <Arduino.h>
-
-#ifdef ESP32
 #include <WiFi.h>
-#else
-#include <ESP8266WiFi.h>
-#endif
-
 #include <Wire.h>
 #include <VL53L0X.h>
 #include <Adafruit_GFX.h>
