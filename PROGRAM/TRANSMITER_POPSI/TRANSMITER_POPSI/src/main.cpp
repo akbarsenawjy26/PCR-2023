@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <WiFi.h>
 #include <Wire.h>
 #include <VL53L0X.h>
 #include <Adafruit_GFX.h>
@@ -16,9 +15,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 void setup()
 {
-  Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-
+  Serial.begin(57600);
+  Serial2.begin(9600);
   Wire.begin();
   sensor.init();
   sensor.setTimeout(500);
@@ -34,6 +32,7 @@ void setup()
   if (!sensor.init())
   {
     Serial.println("Failed to initialize VL53L0X sensor!");
+    Serial2.println("Failed to initialize VL53L0X sensor!");
     while (1)
       ;
   }
@@ -54,6 +53,7 @@ void loop()
   display.println("Count:");
   display.setCursor(80, 30);
   display.println(pushUpSkor);
+  Serial2.println(pushUpSkor);
   display.display();
 
   if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
