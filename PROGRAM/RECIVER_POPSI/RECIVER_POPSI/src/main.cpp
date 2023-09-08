@@ -1,18 +1,20 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+char myData[50];
 
-void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+void setup()
+{
+  Serial.begin(9600);
+  Serial2.begin(9600);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void loop()
+{
+  if (Serial2.available() > 0)
+  {
+    byte m = Serial2.readBytesUntil('\n', myData, 50);
+    myData[m] = '\0';
+    Serial.println(myData);
+  }
+  delay(1000);
 }
