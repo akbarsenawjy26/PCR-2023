@@ -4,20 +4,31 @@
 #include <VL53L0X.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "CTBot.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 int pushUpSkor = 0, pushUpThresholdVL = 15;
 bool flag = false;
+String ssid = "Singkong Krispy", pass = "kibar899", token = "6392401256:AAGpFAWo2R2WDamcMOkoxVyocxbMQ6I3wiQ";
 
 VL53L0X sensor;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+CTBot myBot;
+TBMessage msg;
 
 void setup()
 {
   Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
+  Serial.println("Starting TelegramBot...");
+  myBot.wifiConnect(ssid, pass);
+  myBot.setTelegramToken(token);
+
+  if (myBot.testConnection())
+    Serial.println("\ntestConnection OK");
+  else
+    Serial.println("\ntestConnection NOK");
 
   Wire.begin();
   sensor.init();
@@ -63,10 +74,24 @@ void loop()
     Serial.println(pushUpSkor);
     flag = true;
   }
+
   if (VLdistance > pushUpThresholdVL)
   {
     flag = false;
   }
 
-  delay(100);
+  if (msg.text.equalsIgnoreCase("/getdata"))
+  {
+    myBot.sendMessage(msg.sender.id, "Total skor push-up: " + String(pushUpSkor));
+    delay(100);
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("send data!");
+    display.display();
+    delay(2000);
+    display.clearDisplay();
+  }
+  delay(10);
 }
