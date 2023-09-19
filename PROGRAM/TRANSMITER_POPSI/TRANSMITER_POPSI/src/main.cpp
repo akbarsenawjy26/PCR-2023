@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-#include "pushupcounter_main.h"
-
-unsigned long waktu_skrg = 0, waktu_sblm = 0, interval = 500;
-
-
-=======
 #include <Arduino.h>
 #include <Wire.h>
 #include <VL53L0X.h>
@@ -20,15 +13,10 @@ bool flag = false;
 VL53L0X sensor;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
->>>>>>> parent of 07f6eaf (Update main.cpp)
 void setup()
 {
-  inisiasi_variabel();
   Serial.begin(57600);
   Serial2.begin(9600);
-<<<<<<< HEAD
-  inisiasi_utama();
-=======
   Wire.begin();
   sensor.init();
   sensor.setTimeout(500);
@@ -50,19 +38,10 @@ void setup()
   }
 
   sensor.startContinuous();
->>>>>>> parent of 07f6eaf (Update main.cpp)
 }
 
 void loop()
 {
-<<<<<<< HEAD
-  fungsi_utama();
-  waktu_skrg = millis();
-  if(waktu_skrg-waktu_sblm >= interval){
-    tampilan_lcd();
-    waktu_sblm = waktu_skrg;
-  }
-=======
   uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
 
   display.clearDisplay();
@@ -90,5 +69,4 @@ void loop()
   }
 
   delay(100);
->>>>>>> parent of 07f6eaf (Update main.cpp)
 }
