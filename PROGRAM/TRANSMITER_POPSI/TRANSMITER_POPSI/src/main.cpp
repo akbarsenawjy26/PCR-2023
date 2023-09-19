@@ -1,47 +1,40 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include <Wire.h>
-#include <VL53L0X.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include "Display.h"
+#include "Sensor.h"
+#include "Actuator-LED.h"
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-
-int pushUpSkor = 0, pushUpThresholdVL = 15;
+int pushUpSkor = 0, setUp, setDown, task;
 bool flag = false;
 
-VL53L0X sensor;
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+// Definisi Fungsi
+void pushUpCounter();
+void setParameter();
 
 void setup()
 {
   Serial.begin(115200);
+  pinMode(LEDpin, OUTPUT);
   WiFi.mode(WIFI_STA);
-
-  Wire.begin();
-  sensor.init();
-  sensor.setTimeout(500);
-
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-  { // Address 0x3C for 128x64
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ; // Don't proceed, loop forever
-  }
-  display.clearDisplay();
-
-  if (!sensor.init())
-  {
-    Serial.println("Failed to initialize VL53L0X sensor!");
-    while (1)
-      ;
-  }
-
-  sensor.startContinuous();
+  displaySetup();
+  sensorSetup();
 }
 
 void loop()
+{
+  switch (task)
+  {
+  case 0: // Untuk mencari data parameter
+
+    break;
+
+  case 1: // Push-up Counter
+    pushUpCounter();
+    break;
+  }
+}
+
+void pushUpCounter()
 {
   uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
 
@@ -49,22 +42,25 @@ void loop()
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
-  display.println("VL-mode");
+  display.println("Push-up Counter");
   display.setCursor(0, 30);
   display.println("Count:");
   display.setCursor(80, 30);
   display.println(pushUpSkor);
   display.display();
 
-  if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
+  if (VLdistance <= setDown && flag == false && VLdistance != 0)
   {
+    digitalWrite(LEDpin, HIGH);
     pushUpSkor += 1;
     Serial.print("Skor Push Up = ");
     Serial.println(pushUpSkor);
     flag = true;
   }
-  if (VLdistance > pushUpThresholdVL)
+
+  if (VLdistance > setDown && VLdistance > setUp)
   {
+    digitalWrite(LEDpin, HIGH);
     flag = false;
   }
 
