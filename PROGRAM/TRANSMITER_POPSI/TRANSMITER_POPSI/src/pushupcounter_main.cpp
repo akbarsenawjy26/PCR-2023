@@ -1,5 +1,13 @@
 #include "pushupcounter_main.h"
 
+void inisiasi_variabel(){
+    int pushUpSkor = 0, pushUpThresholddown = 15, pushUpThresholdup = 15;
+    bool flag = false;
+
+    VL53L0X sensor;
+    Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+}
+
 void inisiasi_utama(){    
     Wire.begin();
     sensor.init();
