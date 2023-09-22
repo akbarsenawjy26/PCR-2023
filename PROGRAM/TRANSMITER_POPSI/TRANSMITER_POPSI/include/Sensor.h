@@ -1,6 +1,9 @@
 #include <VL53L0X.h>
 VL53L0X sensor;
 
+int dataSensor, avgDataSensor, divider = 30;
+uint16_t VLdistance;
+
 void sensorSetup()
 {
     sensor.init();
