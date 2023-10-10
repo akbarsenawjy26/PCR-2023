@@ -8,7 +8,7 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-uint8_t broadcastAddress[] = {0xBC, 0xDD, 0xC2, 0x56, 0x51, 0x95}; // BC:DD:C2:56:51:95
+uint8_t broadcastAddress[] = {0xC8, 0xF0, 0x9E, 0xEA, 0xC2, 0x80}; // C8:F0:9E:EA:C2:80
 typedef struct struct_message
 {
   uint16_t VLdistance;
