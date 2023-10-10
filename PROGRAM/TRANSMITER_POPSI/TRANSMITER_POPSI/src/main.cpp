@@ -30,6 +30,33 @@ bool flag = false;
 VL53L0X sensor;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
+int pushUpThresholddown = 0;
+int pushUpThresholdup = 0;
+
+unsigned long waktu_skrg = 0, waktu_sblm = 0, interval = 10;
+
+//Moving Average
+const int numReadings  = 10;
+uint16_t readings [numReadings];
+int readIndex  = 0;
+long total  = 0;  
+int aisVal  = 0;
+
+long smooth(uint16_t data_VL) { 
+  long average;
+  total = total - readings[readIndex];
+  readings[readIndex] = data_VL;
+  total = total + readings[readIndex];
+  readIndex = readIndex + 1;
+  if (readIndex >= numReadings) {
+    readIndex = 0;
+  }
+  average = total / numReadings;
+
+  return average;
+}
+
+
 void setup()
 {
   Serial.begin(115200);
@@ -74,20 +101,26 @@ void setup()
 
 void loop()
 {
-  uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
-  dataSensor.VLdistance = sensor.readRangeContinuousMillimeters() / 10;
-  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&dataSensor, sizeof(dataSensor));
+  uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
+  dataSensor.VLdistance = smooth(VLdistance);
 
-  if (result == ESP_OK)
-  {
-    Serial.println("Sent with success");
-  }
-  else
-  {
-    Serial.println("Error sending the data");
-  }
-  delay(300);
+  waktu_skrg = millis();
+  if(waktu_skrg-waktu_sblm >= interval){
+    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&dataSensor, sizeof(dataSensor));
 
+    if (result == ESP_OK)
+    {
+      Serial.println("Sent with success");
+    }
+    else
+    {
+      Serial.println("Error sending the data");
+    }
+
+    waktu_sblm = waktu_skrg;
+  }
+
+  
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -99,17 +132,14 @@ void loop()
   display.println(pushUpSkor);
   display.display();
 
-  if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
-  {
-    pushUpSkor += 1;
-    Serial.print("Skor Push Up = ");
-    Serial.println(pushUpSkor);
-    flag = true;
+  if (VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
+      pushUpSkor += 1;
+      Serial.println(pushUpSkor);
+      Serial2.println(pushUpSkor);
+      flag = true;
   }
-  if (VLdistance > pushUpThresholdVL)
-  {
-    flag = false;
+  if (VLdistance > pushUpThresholdup){
+      flag = false;
   }
 
-  delay(100);
 }
