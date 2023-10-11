@@ -30,8 +30,9 @@ bool flag = false;
 VL53L0X sensor;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-int pushUpThresholddown = 0;
-int pushUpThresholdup = 0;
+int pushUpThresholddown = 50;
+int pushUpThresholdup = 200;
+int pushUpThresholdup_up = 600;
 
 unsigned long waktu_skrg = 0, waktu_sblm = 0, interval = 10;
 
@@ -132,13 +133,13 @@ void loop()
   display.println(pushUpSkor);
   display.display();
 
-  if (VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
+  if (dataSensor.VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
+      flag = true;
+  }
+  if (dataSensor.VLdistance > pushUpThresholdup && dataSensor.VLdistance <=pushUpThresholdup_up && flag == true){
       pushUpSkor += 1;
       Serial.println(pushUpSkor);
       Serial2.println(pushUpSkor);
-      flag = true;
-  }
-  if (VLdistance > pushUpThresholdup){
       flag = false;
   }
 
