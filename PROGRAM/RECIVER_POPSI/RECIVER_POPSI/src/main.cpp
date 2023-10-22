@@ -1,56 +1,61 @@
 #include <Arduino.h>
 
-int Value1 = 0;
-// int Value2 = 0;
-// int Value3 = 0;
+int Value = 9999;
 
-
-int jumlah_data = 0;
-int jumlah_data_serial=0;
-
-const int panjang_data = 1+1+2+2;
+const int panjang_data = 1+1+1;
 int i = 0;
 byte nilai[panjang_data];
 
-unsigned long detik_skrg = 0;
-unsigned long detik_sblm = 0;
-const long jarak_waktu = 200;
+byte kode = 0x42;
 
 void checksum_serial(){
-  byte kode = 0x42;
-  jumlah_data = 0;
-  jumlah_data_serial = 0;
-  
+  // komen semua address kecuali untuk address slave yang akan diupload
+  byte address = 
+  0x45 // slave 1
+  // 0x46 // slave 2
+  ;
+
+  int panjang_data_kirim = 2;
+  byte nilai_kirim[panjang_data];
+  byte checksum[2];
+  int jumlah_data = 0;
+
   if(nilai[0] == kode){
-    switch (nilai[1])
-    {
-    case 0x45:
-      Serial.print("From Device 1"); Serial.println();
-      break;
-    
-    default:
-      break;
-    }
+    if (nilai[1] == address) {
+      switch (nilai[2])
+      {
+      case 0x43:
+        // Master meminta data
+        // Proses mengirim data yang diminta
+        nilai_kirim[0] = (Value >> 8) & 0xFF;
+        nilai_kirim[1] = Value & 0xFF;
 
-    for(int j = 2;j<panjang_data-2;j++){
-      jumlah_data += nilai[j];
-    }
-    jumlah_data_serial = nilai[panjang_data-2] << 8 | nilai[panjang_data-1];
+        for(int i=0;i < panjang_data_kirim; i++){
+          jumlah_data += nilai_kirim[i];
+        }
 
-    if(jumlah_data == jumlah_data_serial){
-      Value1 = (nilai[2] << 8) | nilai[3];
-      // Value2 = (nilai[3] << 8) | nilai[4];
-      // Value3 = (nilai[5] << 8) | nilai[6];
-    }else{
-      Serial.print("GAGAL!");
+        checksum[0] = (jumlah_data >> 8) & 0xFF;
+        checksum[1] = jumlah_data & 0xFF;
+
+        Serial2.write(nilai_kirim,panjang_data_kirim);
+        Serial2.write(checksum,2);
+        break;
+
+      case 0x44:
+        // Master mengirim data
+        break;
+
+      default:
+        break;
+      }
+    } else {
+      Serial.print("Berbeda Address. Address ini : " + (String)address + ". Sedangkan address yang dikirimkan" + (String)nilai[1]);
     }
-    
   }else{
     Serial.print("GAGAL!");
   }
+  Serial.println();
 }
-
-int incomingByte = 0; // for incoming serial data
 
 void setup() {
   Serial.begin(9600);
@@ -67,20 +72,9 @@ void loop() {
     }
   }
   for(int k = 0; k<panjang_data;k++){
-    Serial.print(nilai[k]);
-  }
-  Serial.println();
-  
-  checksum_serial();
-
-  detik_skrg = millis();
-  if(detik_skrg-detik_sblm >= jarak_waktu){
-    detik_sblm = detik_skrg;
-    Serial.print(Value1);
-    // Serial.print("\t");
-    // Serial.print(Value2);Serial.print("\t");
-    // Serial.print(Value3);
+      Serial.print(nilai[k]);
+    }
     Serial.println();
-  }
-
+    
+    checksum_serial();
 }

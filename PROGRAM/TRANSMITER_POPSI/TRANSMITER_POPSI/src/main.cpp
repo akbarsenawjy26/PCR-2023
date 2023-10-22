@@ -1,50 +1,48 @@
 #include <Arduino.h>
-//Uji Coba Checksum
-int Value1 = 9999;
-// int Value2 = 100;
-// int Value3 = 89;
 
 long int detik_skrg = 0;
 long int detik_sblm = 0;
 long int jarak_waktu = 100;
 
-void checksum_serial(){
-  int panjang_data = 2;
-  byte nilai[panjang_data];
+int Value1 = 0;
+const int panjang_data = 2+2;
+int i = 0;
+byte nilai[panjang_data];
+int jumlah_data = 0;
+int jumlah_data_serial=0;
+
+void request_data(){
   byte kode = 0x42;
-  byte address = 0x45;
-  byte checksum[2];
-  int jumlah_data = 0;
-  
-  nilai[0] = (Value1 >> 8) & 0xFF;
-  nilai[1] = Value1 & 0xFF;
-  // nilai[2] = (Value2 >> 8) & 0xFF;
-  // nilai[3] = Value2 & 0xFF;
-  // nilai[4] = (Value3 >> 8) & 0xFF;
-  // nilai[5] = Value3 & 0xFF;
-
-
-  for(int i=0;i < panjang_data; i++){
-    jumlah_data += nilai[i];
-  }
-
-  checksum[0] = (jumlah_data >> 8) & 0xFF;
-  checksum[1] = jumlah_data & 0xFF;
+  byte address_slave_1 = 0x45;
+  byte address_slave_2 = 0x46;
+  byte read = 0x43; // byte yang akan dikirimkan dari master ke slave untuk memberitahu slave bahwa master meminta data dari slave
+  byte write = 0x44; // byte yang akan dikirimkan dari master ke slave untuk memberitahu slave bahwa master akan mengirim data ke slave
 
   Serial2.write(kode);
-  Serial2.write(address);
-  Serial2.write(nilai,panjang_data);
-  Serial2.write(checksum,2);
+  Serial2.write(address_slave_1); // akan menginstruksikan slave 1
+  Serial2.write(read); // master akan menerima data dari slave
 
   Serial.print(kode);
-  Serial.print(address);
-  for(int i = 0; i < panjang_data; i++) {
-    Serial.print(nilai[i]);
-  }
-  for(int i = 0; i < 2; i++) {
-    Serial.print(checksum[i]);
-  }
+  Serial.print(address_slave_1);
+  Serial.print(read);
   Serial.println();
+}
+
+void checksum_serial(){
+  jumlah_data = 0;
+  jumlah_data_serial = 0;
+  
+  for(int j = 0;j<panjang_data-2;j++){
+    jumlah_data += nilai[j];
+  }
+
+  jumlah_data_serial = nilai[panjang_data-2] << 8 | nilai[panjang_data-1];
+
+  if(jumlah_data == jumlah_data_serial){
+    Value1 = (nilai[0] << 8) | nilai[1];
+  } else{
+    Serial.print("GAGAL!");
+  }
 }
 
 void setup() {
@@ -55,9 +53,27 @@ void setup() {
 }
 
 void loop() {
+
+  if (Serial2.available() > 0) {
+    nilai[i] = Serial2.read();
+    i++;
+    if(i > panjang_data-1){
+      i = 0;
+    }
+    for(int k = 0; k<panjang_data;k++){
+      Serial.print(nilai[k]);
+    }
+    Serial.println();
+    
+    checksum_serial();
+  }
+
   detik_skrg = millis();
   if(detik_skrg-detik_sblm >= jarak_waktu){
     detik_sblm = detik_skrg;
-    checksum_serial();
+    request_data();
+
+    Serial.print(Value1);
+    Serial.println();
   }
 }
