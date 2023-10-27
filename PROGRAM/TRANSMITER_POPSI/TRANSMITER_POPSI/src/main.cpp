@@ -11,6 +11,8 @@ byte nilai[panjang_data];
 int jumlah_data = 0;
 int jumlah_data_serial=0;
 
+bool proses_mengirim = false;
+
 void request_data(){
   byte kode = 0x42;
   byte address_slave_1 = 0x45;
@@ -22,10 +24,10 @@ void request_data(){
   Serial2.write(address_slave_1); // akan menginstruksikan slave 1
   Serial2.write(read); // master akan menerima data dari slave
 
-  Serial.print(kode);
-  Serial.print(address_slave_1);
-  Serial.print(read);
-  Serial.println();
+  // Serial.print(kode);
+  // Serial.print(address_slave_1);
+  // Serial.print(read);
+  // Serial.println();
 }
 
 void checksum_serial(){
@@ -40,9 +42,14 @@ void checksum_serial(){
 
   if(jumlah_data == jumlah_data_serial){
     Value1 = (nilai[0] << 8) | nilai[1];
+
+    Serial.print(Value1);
+    Serial.println();
   } else{
     Serial.print("GAGAL!");
+    request_data();
   }
+  proses_mengirim = false;
 }
 
 void setup() {
@@ -53,27 +60,34 @@ void setup() {
 }
 
 void loop() {
+  if (Serial.available() > 0) {
+    char data = Serial.read();
+    if (data == 's') {
+      // request data kepada slave sertiap mengirim char s ke serial monitor
+      if (!proses_mengirim) {
+        request_data();
+        proses_mengirim = true;
+      }
+    }
+  }  
+  
 
   if (Serial2.available() > 0) {
     nilai[i] = Serial2.read();
     i++;
     if(i > panjang_data-1){
       i = 0;
+      checksum_serial();
     }
     for(int k = 0; k<panjang_data;k++){
-      Serial.print(nilai[k]);
+      // Serial.print(nilai[k]);
     }
-    Serial.println();
-    
-    checksum_serial();
+    // Serial.println();
   }
 
   detik_skrg = millis();
   if(detik_skrg-detik_sblm >= jarak_waktu){
     detik_sblm = detik_skrg;
-    request_data();
-
-    Serial.print(Value1);
-    Serial.println();
+    // request_data();
   }
 }

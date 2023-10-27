@@ -69,12 +69,14 @@ void loop() {
     i++;
     if(i > panjang_data-1){
       i = 0;
+      checksum_serial();
     }
-  }
-  for(int k = 0; k<panjang_data;k++){
+
+    for(int k = 0; k<panjang_data;k++){
       Serial.print(nilai[k]);
     }
     Serial.println();
     
-    checksum_serial();
+    
+  }
 }
