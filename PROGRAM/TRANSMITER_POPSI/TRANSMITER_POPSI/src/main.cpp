@@ -14,9 +14,10 @@ bool flag = false;
 VL53L0X sensor;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-int i = 1;
+int i = 0;
 int x = 0;
-int rata;
+double rata;
+bool start = false;
 
 void setup()
 {
@@ -47,43 +48,53 @@ void setup()
 
 void loop()
 {
-  uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
-
-  Serial.print("Jarak : " + (String)VLdistance);
-  Serial.println();
-  i+=1;
-  x = x + VLdistance;
-  if (i == 50)
+  if (start)
   {
-    rata = x / i;
-    i = 0;
-    x = 0;
+    uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
+    Serial.println(VLdistance);
+    i+=1;
+    x = x + VLdistance;
+    if (i == 50)
+    {
+      rata = x / i;
+      // Serial.println("Rata2 = " + (String)rata);
+      i = 0;
+      x = 0;
+      start = false;
+    }
   }
-  Serial.println(rata);
+  
+
+  if (Serial.available() > 0) {
+    char data = Serial.read();
+    if (data == 's') {
+      start = true;
+    }
+  }
 
 
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.println("VL-mode");
-  display.setCursor(0, 30);
-  display.println("Count:");
-  display.setCursor(80, 30);
-  display.println(pushUpSkor);
-  display.display();
+  // display.clearDisplay();
+  // display.setTextSize(2);
+  // display.setTextColor(WHITE);
+  // display.setCursor(0, 0);
+  // display.println("VL-mode");
+  // display.setCursor(0, 30);
+  // display.println("Count:");
+  // display.setCursor(80, 30);
+  // display.println(pushUpSkor);
+  // display.display();
 
-  if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
-  {
-    pushUpSkor += 1;
-    Serial.print("Skor Push Up = ");
-    Serial.println(pushUpSkor);
-    flag = true;
-  }
-  if (VLdistance > pushUpThresholdVL)
-  {
-    flag = false;
-  }
+  // if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
+  // {
+  //   pushUpSkor += 1;
+  //   Serial.print("Skor Push Up = ");
+  //   Serial.println(pushUpSkor);
+  //   flag = true;
+  // }
+  // if (VLdistance > pushUpThresholdVL)
+  // {
+  //   flag = false;
+  // }
 
   delay(100);
 }
