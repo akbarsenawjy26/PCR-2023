@@ -12,16 +12,18 @@ int jumlah_data = 0;
 int jumlah_data_serial=0;
 
 bool proses_mengirim = false;
+byte address_slave_1 = 0x45;
+byte address_slave_2 = 0x46;
+byte address;
+String from;
 
 void request_data(){
   byte kode = 0x42;
-  byte address_slave_1 = 0x45;
-  byte address_slave_2 = 0x46;
   byte read = 0x43; // byte yang akan dikirimkan dari master ke slave untuk memberitahu slave bahwa master meminta data dari slave
   byte write = 0x44; // byte yang akan dikirimkan dari master ke slave untuk memberitahu slave bahwa master akan mengirim data ke slave
 
   Serial2.write(kode);
-  Serial2.write(address_slave_1); // akan menginstruksikan slave 1
+  Serial2.write(address); // akan menginstruksikan slave 1
   Serial2.write(read); // master akan menerima data dari slave
 
   // Serial.print(kode);
@@ -43,7 +45,7 @@ void checksum_serial(){
   if(jumlah_data == jumlah_data_serial){
     Value1 = (nilai[0] << 8) | nilai[1];
 
-    Serial.print(Value1);
+    Serial.print("Data dari slave " + from + " : " + (String)Value1);
     Serial.println();
   } else{
     Serial.print("GAGAL!");
@@ -62,12 +64,25 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     char data = Serial.read();
-    if (data == 's') {
+    switch (data)
+    {
+    case 'r':
       // request data kepada slave sertiap mengirim char s ke serial monitor
       if (!proses_mengirim) {
         request_data();
         proses_mengirim = true;
       }
+      break;
+    case '1':
+      address = address_slave_1;
+      from = "1";
+      break;
+    case '2':
+      address = address_slave_2;
+      from = "2";
+      break;
+    default:
+      break;
     }
   }  
   
