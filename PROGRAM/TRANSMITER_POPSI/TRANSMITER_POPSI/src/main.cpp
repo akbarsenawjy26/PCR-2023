@@ -14,6 +14,10 @@ bool flag = false;
 VL53L0X sensor;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
+int i = 1;
+int x = 0;
+int rata;
+
 void setup()
 {
   Serial.begin(115200);
@@ -44,6 +48,19 @@ void setup()
 void loop()
 {
   uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
+
+  Serial.print("Jarak : " + (String)VLdistance);
+  Serial.println();
+  i+=1;
+  x = x + VLdistance;
+  if (i == 50)
+  {
+    rata = x / i;
+    i = 0;
+    x = 0;
+  }
+  Serial.println(rata);
+
 
   display.clearDisplay();
   display.setTextSize(2);
