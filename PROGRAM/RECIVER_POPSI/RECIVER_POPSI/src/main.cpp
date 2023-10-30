@@ -11,7 +11,7 @@ struct_message dataSensor;
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
   memcpy(&dataSensor, incomingData, sizeof(dataSensor));
-  Serial.println(String(dataSensor.VLdistance));
+  Serial.print(dataSensor.VLdistance);
 }
 
 void setup()
