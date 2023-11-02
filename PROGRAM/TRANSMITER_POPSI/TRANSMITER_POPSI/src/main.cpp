@@ -9,6 +9,7 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 int pushUpSkor = 0, pushUpThresholdVL = 15; 
+bool flag = false;
 
 VL53L0X sensor;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
