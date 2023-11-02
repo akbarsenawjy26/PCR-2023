@@ -50,7 +50,7 @@ void loop()
 {
   if (start)
   {
-    uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
+    uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
     Serial.println(VLdistance);
     i+=1;
     x = x + VLdistance;
@@ -64,7 +64,6 @@ void loop()
     }
   }
   
-
   if (Serial.available() > 0) {
     char data = Serial.read();
     if (data == 's') {
