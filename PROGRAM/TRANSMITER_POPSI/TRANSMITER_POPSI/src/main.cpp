@@ -1,72 +1,117 @@
+
 #include <Arduino.h>
 #include <WiFi.h>
-#include <Wire.h>
-#include <VL53L0X.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <PubSubClient.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+//DHT11
+#include "DHT.h"
+#define DHTPIN 15     
+#define DHTTYPE DHT11 
+DHT dht(DHTPIN, DHTTYPE);
 
-int pushUpSkor = 0, pushUpThresholdVL = 15; 
-bool flag = false;
+// Update these with values suitable for your network.
+const char* ssid = "Kurniasyah";
+const char* password = "Izzulizzam2002";
+//const char* ssid = "Lab Mikroprosessor";
+//const char* password = "mikrojos08";
+const char* mqtt_server = "broker.mqtt-dashboard.com";
 
-VL53L0X sensor;
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+WiFiClient espClient;
+PubSubClient client(espClient);
+unsigned long lastMsg = 0;
 
-void setup()
-{
-  Serial.begin(115200);
+void setup_wifi() {
+
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
   WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
 
-  Wire.begin();
-  sensor.init();
-  sensor.setTimeout(500);
-
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-  { // Address 0x3C for 128x64
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ; // Don't proceed, loop forever
-  }
-  display.clearDisplay();
-
-  if (!sensor.init())
-  {
-    Serial.println("Failed to initialize VL53L0X sensor!");
-    while (1)
-      ;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
   }
 
-  sensor.startContinuous();
+  randomSeed(micros());
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
-void loop()
-{
-  uint16_t VLdistance = sensor.readRangeContinuousMillimeters() / 10;
-
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.println("VL-mode");
-  display.setCursor(0, 30);
-  display.println("Count:");
-  display.setCursor(80, 30);
-  display.println(pushUpSkor);
-  display.display();
-
-  if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
-  {
-    pushUpSkor += 1;
-    Serial.print("Skor Push Up = ");
-    Serial.println(pushUpSkor);
-    flag = true;
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
   }
-  if (VLdistance > pushUpThresholdVL)
-  {
-    flag = false;
-  }
+  Serial.println();
+}
 
-  delay(100);
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = "ESP32Client-";
+    clientId += String(random(0xffff), HEX);
+    
+    // Attempt to connect
+    if (client.connect(clientId.c_str())) {
+      Serial.println("connected");
+      client.subscribe("/esp32/mqtt/in");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  setup_wifi();
+  dht.begin();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+}
+
+void loop() {
+
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  long now = millis();
+  if (now - lastMsg > 5000) {
+    lastMsg = now;
+    
+  //dht11
+  float h = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+
+      // Convert the value to a char array
+    char tempString[8];
+    dtostrf(t, 1, 2, tempString);
+    Serial.print("Temperature: ");
+    Serial.println(tempString);
+    client.publish("/esp32-mqtt/temperature", tempString);
+   
+    // Convert the value to a char array
+    char humString[8];
+    dtostrf(h, 1, 2, humString);
+    Serial.print("Humidity: ");
+    Serial.println(humString);
+    client.publish("/esp32-mqtt/humidity", humString);
+  }
 }
