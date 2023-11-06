@@ -1,66 +1,57 @@
 #include <Arduino.h>
 
-int Value = 9999;
-
-const int panjang_data = 1+1+1;
-int i = 0;
+const int panjang_data = 1+1+2+2; // byte kode+addres_salve+data+checksum
 byte nilai[panjang_data];
-
-byte kode = 0x42;
+int i = 0;
 
 void checksum_serial(){
-  // komen semua address kecuali untuk address slave yang akan diupload
-  byte address = 
-  0x45 // slave 1
-  // 0x46 // slave 2
-  ;
-
-  int panjang_data_kirim = 2;
-  byte nilai_kirim[panjang_data];
-  byte checksum[2];
+  byte kode = 0x42;
+  int banyak_slave = 2;
+  byte address_slave[banyak_slave] = {0x45,0x46};
+  int from;
+  bool address_cocok = false;
+  
+  int Value1 = 0;
   int jumlah_data = 0;
+  int jumlah_data_serial = 0;
 
-  if(nilai[0] == kode){
-    if (nilai[1] == address) {
-      switch (nilai[2])
+  if (nilai[0] == kode) {
+    for (size_t i = 0; i < banyak_slave; i++)
+    {
+      if (nilai[1] == address_slave[i])
       {
-      case 0x43:
-        // Master meminta data
-        // Proses mengirim data yang diminta
-        nilai_kirim[0] = (Value >> 8) & 0xFF;
-        nilai_kirim[1] = Value & 0xFF;
-
-        for(int i=0;i < panjang_data_kirim; i++){
-          jumlah_data += nilai_kirim[i];
-        }
-
-        checksum[0] = (jumlah_data >> 8) & 0xFF;
-        checksum[1] = jumlah_data & 0xFF;
-
-        Serial2.write(nilai_kirim,panjang_data_kirim);
-        Serial2.write(checksum,2);
-        break;
-
-      case 0x44:
-        // Master mengirim data
-        break;
-
-      default:
-        break;
-      }
-    } else {
-      Serial.print("Berbeda Address. Address ini : " + (String)address + ". Sedangkan address yang dikirimkan" + (String)nilai[1]);
+        from = i+1;
+        address_cocok = true;
+      } 
     }
-  }else{
-    Serial.print("GAGAL!");
+  } else {
+    Serial.println("GAGAL!, Kode salah");
   }
-  Serial.println();
+  
+
+
+  if (address_cocok) {
+    for(int j = 2;j<panjang_data-2;j++){
+      jumlah_data += nilai[j];
+    }
+
+    jumlah_data_serial = nilai[panjang_data-2] << 8 | nilai[panjang_data-1];
+
+    if(jumlah_data == jumlah_data_serial){
+      Value1 = (nilai[2] << 8) | nilai[3];
+
+      Serial.println("Data dari slave " + (String)from + " : " + (String)Value1);
+    } else{
+      Serial.println("GAGAL!, checksum eror");
+    }
+  } else {
+    Serial.println("Address tidak ada yang cocok");
+  }
 }
 
 void setup() {
   Serial.begin(9600);
   Serial2.begin(9600);
-
 }
 
 void loop() { 
@@ -71,12 +62,9 @@ void loop() {
       i = 0;
       checksum_serial();
     }
-
     for(int k = 0; k<panjang_data;k++){
-      Serial.print(nilai[k]);
+      // Serial.print(nilai[k]);
     }
-    Serial.println();
-    
-    
+    // Serial.println();
   }
 }
