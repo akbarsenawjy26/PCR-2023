@@ -1,27 +1,27 @@
 #include <Arduino.h>
+#include <SoftwareSerial.h>
 
-int Value = 9999;
+SoftwareSerial Serial2 (8, 7); // RX, TX
+
+int Value = 8888;
 
 const int panjang_data = 1+1+1;
 int i = 0;
 byte nilai[panjang_data];
 
-byte kode = 0x42;
-
 void checksum_serial(){
-  // komen semua address kecuali untuk address slave yang akan diupload
-  byte address = 
-  0x45 // slave 1
-  // 0x46 // slave 2
-  ;
+  int slave_index = 1; // PENTING!!! isi sinteger sesuai slave ke berapa yang akan di upload
+  int banyak_slave = 2;
 
+  byte kode = 0x42;
+  byte address_slave[banyak_slave] = {0x45,0x46};
   int panjang_data_kirim = 2;
   byte nilai_kirim[panjang_data];
   byte checksum[2];
   int jumlah_data = 0;
 
   if(nilai[0] == kode){
-    if (nilai[1] == address) {
+    if (nilai[1] == address_slave[slave_index-1]) {
       switch (nilai[2])
       {
       case 0x43:
@@ -49,7 +49,7 @@ void checksum_serial(){
         break;
       }
     } else {
-      Serial.print("Berbeda Address. Address ini : " + (String)address + ". Sedangkan address yang dikirimkan" + (String)nilai[1]);
+      Serial.print("Berbeda Address. Address ini : " + (String)address_slave[slave_index-1] + ". Sedangkan address yang dikirimkan" + (String)nilai[1]);
     }
   }else{
     Serial.print("GAGAL!");
