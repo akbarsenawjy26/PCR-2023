@@ -4,11 +4,10 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 
-#define OLED_SDA 12
-#define OLED_SCL 14
+#define OLED_SDA 21
+#define OLED_SCL 22
 
-Adafruit_SH1106 display(12, 14);
-
+Adafruit_SH1106 display(OLED_SDA, OLED_SCL);
 
 void setup()   {                
   Serial.begin(115200);
