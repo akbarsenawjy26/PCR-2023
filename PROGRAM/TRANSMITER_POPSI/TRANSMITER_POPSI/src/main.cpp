@@ -141,7 +141,7 @@ void loop()
   }
   client.loop();
   long now = millis();
-  if (now - lastMsg > 1000) {
+  if (now - lastMsg > 1) {
     lastMsg = now;
 
     uint16_t VLdistance = sensor.readRangeContinuousMillimeters()/10;
@@ -156,6 +156,12 @@ void loop()
     display.println(pushUpSkor);
     display.display();
 
+    char fullTopic[50]; // Array char untuk menyimpan topik MQTT lengkap
+    snprintf(fullTopic, sizeof(fullTopic), "%s/%d", topicPrefix, adressDevice);
+    //int randomData = random(0, 101);
+    client.publish(fullTopic, String(VLdistance).c_str());
+    Serial.println("Data terkirim ke topik: " + String(VLdistance));
+
     if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
     {
       pushUpSkor += 1;
@@ -168,6 +174,6 @@ void loop()
       flag = false;
     }
   client.loop();
-  delay(1000);   // Kirim data setiap 1 detik*/
+  delay(10);   // Kirim data setiap 1 detik*/
   }
 }
