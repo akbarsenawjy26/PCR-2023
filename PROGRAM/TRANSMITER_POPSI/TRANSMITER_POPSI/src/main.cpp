@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#include <SoftwareSerial.h>
+
+SoftwareSerial Serial2 (8, 7); // RX, TX
 
 long int detik_skrg = 0;
 long int detik_sblm = 0;
@@ -11,10 +14,9 @@ byte nilai[panjang_data];
 int jumlah_data = 0;
 int jumlah_data_serial=0;
 
-bool proses_mengirim = false;
-byte address_slave_1 = 0x45;
-byte address_slave_2 = 0x46;
-byte address;
+const int banyak_slave = 2;
+byte address_slave[banyak_slave] = {0x45,0x46};
+int slave_index;
 String from;
 
 void request_data(){
@@ -23,13 +25,11 @@ void request_data(){
   byte write = 0x44; // byte yang akan dikirimkan dari master ke slave untuk memberitahu slave bahwa master akan mengirim data ke slave
 
   Serial2.write(kode);
-  Serial2.write(address); // akan menginstruksikan slave 1
+  Serial2.write(address_slave[slave_index-1]); // akan menginstruksikan slave 1
   Serial2.write(read); // master akan menerima data dari slave
 
-  // Serial.print(kode);
-  // Serial.print(address_slave_1);
-  // Serial.print(read);
-  // Serial.println();
+  // waits for the transmission of outgoing serial data to complete
+  Serial2.flush();
 }
 
 void checksum_serial(){
@@ -45,13 +45,13 @@ void checksum_serial(){
   if(jumlah_data == jumlah_data_serial){
     Value1 = (nilai[0] << 8) | nilai[1];
 
-    Serial.print("Data dari slave " + from + " : " + (String)Value1);
-    Serial.println();
+    Serial.println("Data dari slave " + from + " : " + (String)Value1);
   } else{
-    Serial.print("GAGAL!");
+    Serial.println("GAGAL!");
+    
+    // meminta data lagi jika data yang diterima gagal
     request_data();
   }
-  proses_mengirim = false;
 }
 
 void setup() {
@@ -62,25 +62,25 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() > 0) {
+  while (Serial.available() > 0) {
     char data = Serial.read();
     switch (data)
     {
     case 'r':
-      // request data kepada slave sertiap mengirim char s ke serial monitor
-      if (!proses_mengirim) {
-        request_data();
-        proses_mengirim = true;
-      }
+      // request data kepada slave sertiap mengirim char r ke serial monitor
+      request_data();
       break;
+
     case '1':
-      address = address_slave_1;
-      from = "1";
+      slave_index = 1;
+      from = data;
       break;
+
     case '2':
-      address = address_slave_2;
-      from = "2";
+      slave_index = 2;
+      from = data;
       break;
+
     default:
       break;
     }
@@ -94,15 +94,16 @@ void loop() {
       i = 0;
       checksum_serial();
     }
-    for(int k = 0; k<panjang_data;k++){
-      // Serial.print(nilai[k]);
-    }
+    // for(int k = 0; k<panjang_data;k++){
+    //   Serial.print(nilai[k]);
+    // }
     // Serial.println();
   }
 
-  detik_skrg = millis();
-  if(detik_skrg-detik_sblm >= jarak_waktu){
-    detik_sblm = detik_skrg;
-    // request_data();
-  }
+  // detik_skrg = millis();
+  // if(detik_skrg-detik_sblm >= jarak_waktu){
+  //   detik_sblm = detik_skrg;
+    
+  //   request_data();
+  // }
 }
