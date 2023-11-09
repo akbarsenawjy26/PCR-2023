@@ -5,7 +5,7 @@ SoftwareSerial Serial2 (8, 7); // RX, TX
 
 long int detik_skrg = 0;
 long int detik_sblm = 0;
-long int jarak_waktu = 100;
+long int jarak_waktu = 10;
 
 int Value1 = 0;
 const int panjang_data = 2+2;
@@ -16,8 +16,32 @@ int jumlah_data_serial=0;
 
 const int banyak_slave = 2;
 byte address_slave[banyak_slave] = {0x45,0x46};
-int slave_index;
+int slave_index = 1;
 String from;
+
+int final_value[banyak_slave]; 
+
+void upload_data() {
+  // save the data
+  final_value[slave_index - 1] = Value1;
+
+  for (int i = 0; i < banyak_slave; i++)
+  {
+    if ((i % 2 == 1))
+    {
+      Serial.print(",");
+    }
+    
+    Serial.print(final_value[i]);
+  }
+  Serial.println();
+
+  slave_index++;
+  if (slave_index > banyak_slave)
+  {
+    slave_index = 1;
+  }
+}
 
 void request_data(){
   byte kode = 0x42;
@@ -45,7 +69,9 @@ void checksum_serial(){
   if(jumlah_data == jumlah_data_serial){
     Value1 = (nilai[0] << 8) | nilai[1];
 
-    Serial.println("Data dari slave " + from + " : " + (String)Value1);
+    // Serial.println("Data dari slave " + from + " : " + (String)Value1);
+
+    upload_data();
   } else{
     Serial.println("GAGAL!");
     
@@ -62,7 +88,7 @@ void setup() {
 }
 
 void loop() {
-  while (Serial.available() > 0) {
+  if (Serial.available() > 0) {
     char data = Serial.read();
     switch (data)
     {
@@ -100,10 +126,10 @@ void loop() {
     // Serial.println();
   }
 
-  // detik_skrg = millis();
-  // if(detik_skrg-detik_sblm >= jarak_waktu){
-  //   detik_sblm = detik_skrg;
+  detik_skrg = millis();
+  if(detik_skrg-detik_sblm >= jarak_waktu){
+    detik_sblm = detik_skrg;
     
-  //   request_data();
-  // }
+    request_data();
+  }
 }
