@@ -12,8 +12,10 @@
 
 //-----------------------------DEFINE MQTT-------------------------------------------------------------
 
-const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
-const char* password = "Penelitian2023"; // Kata sandi WiFi
+const char* ssid = "Kurniasyah"; // Nama jaringan WiFi
+const char* password = "Izzulizzam2002"; // Kata sandi WiFi
+//const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
+//const char* password = "Penelitian2023"; // Kata sandi WiFi
 const char* mqttServer = "broker.mqtt-dashboard.com"; // Alamat broker MQTT
 int mqttPort = 1883; // Port broker MQTT
 
@@ -142,29 +144,29 @@ void loop()
   if (now - lastMsg > 1000) {
     lastMsg = now;
 
+    uint16_t VLdistance = sensor.readRangeContinuousMillimeters()/10;
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("VL-mode");
+    display.setCursor(0, 30);
+    display.println("Count:");
+    display.setCursor(80, 30);
+    display.println(pushUpSkor);
+    display.display();
 
-
-  if (start)
-  {
-    uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
-    Serial.println(VLdistance);
-    i+=1;
-    x = x + VLdistance;
-    if (i == 50)
+    if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
     {
-      rata = x / i;
-      i = 0;
-      x = 0;
-      start = false;
+      pushUpSkor += 1;
+      Serial.print("Skor Push Up = ");
+      Serial.println(pushUpSkor);
+      flag = true;
     }
-  }
-  
-  if (Serial.available() > 0) {
-    char data = Serial.read();
-    if (data == 's') {
-      start = true;
+    if (VLdistance > pushUpThresholdVL)
+    {
+      flag = false;
     }
-  }
   client.loop();
   delay(1000);   // Kirim data setiap 1 detik*/
   }
