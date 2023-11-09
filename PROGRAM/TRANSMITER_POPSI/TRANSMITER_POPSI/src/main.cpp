@@ -2,7 +2,7 @@
  * Include Libraries
  ****************************************/
 #include "UbidotsESPMQTT.h"
-//run
+
 /****************************************
  * Define Constants
  ****************************************/
@@ -32,8 +32,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(115200);
+  //client.ubidotsSetBroker("industrial.api.ubidots.com"); // Sets the broker properly for the industrial account
   client.setDebug(true); // Pass a true or false bool value to activate debug messages
+  Serial.begin(115200);
   client.wifiConnection(WIFINAME, WIFIPASS);
   client.begin(callback);
   }
@@ -44,12 +45,9 @@ void loop() {
       client.reconnect();
       }
   
-  // Publish values to 2 different data sources
-  
-  client.add("stuff", 10.2); //Insert your variable Labels and the value to be sent
-  client.ubidotsPublish("source1");
-  client.add("stuff", 10.2);
-  client.add("more-stuff", 120.2);
-  client.ubidotsPublish("source2");
+  float value1 = analogRead(A0);
+  client.add("temperature", value1);
+  client.ubidotsPublish("version1");
   client.loop();
-  }
+  delay(500);
+}
