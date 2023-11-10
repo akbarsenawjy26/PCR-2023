@@ -9,7 +9,7 @@ const int panjang_data = 1+1+1;
 int i = 0;
 byte nilai[panjang_data];
 
-int slave_index = 1; // PENTING!!! isi sinteger sesuai slave ke berapa yang akan di upload
+int slave_index = 2; // PENTING!!! isi sinteger sesuai slave ke berapa yang akan di upload
 const int banyak_slave = 2;
 byte address_slave[banyak_slave] = {0x45,0x46};
 
@@ -59,12 +59,12 @@ void checksum_serial() {
   }else{
     Serial.println("GAGAL!");
   }
+
   // empty the receiver buffer
   while (Serial2.available())
   {
     Serial2.read();
   }
-  
 }
 
 void setup() {
@@ -74,7 +74,7 @@ void setup() {
 }
 
 void loop() { 
-  while (Serial2.available() > 0) {    
+  if (Serial2.available() > 0) {    
     nilai[i] = Serial2.read();
     i++;
     if(i > panjang_data-1){

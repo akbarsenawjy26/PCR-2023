@@ -36,6 +36,9 @@ void upload_data() {
   }
   Serial.println();
 
+  // waits for the transmission of outgoing serial data to complete
+  Serial.flush();
+
   slave_index++;
   if (slave_index > banyak_slave)
   {
@@ -78,13 +81,18 @@ void checksum_serial(){
     // meminta data lagi jika data yang diterima gagal
     request_data();
   }
+
+  // empty the receiver buffer
+  while (Serial2.available())
+  {
+    Serial2.read();
+  }
 }
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   Serial2.begin(9600);
-
 }
 
 void loop() {
@@ -126,10 +134,16 @@ void loop() {
     // Serial.println();
   }
 
+  // cek dan memastikan agar tidak request data ketika sedang menerima data 
+  if (i == 0)
+  {
+    request_data();
+  }
+
   detik_skrg = millis();
   if(detik_skrg-detik_sblm >= jarak_waktu){
     detik_sblm = detik_skrg;
     
-    request_data();
+    // request_data()
   }
 }
