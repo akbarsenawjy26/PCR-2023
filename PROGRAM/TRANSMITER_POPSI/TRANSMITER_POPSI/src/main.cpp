@@ -22,10 +22,10 @@ const char *WIFI_PASS = "Izzulizzam2002";      // Put here your Wi-Fi password
 const char *DEVICE_LABEL = "01";   // Put here your Device label to which data  will be published
 const char *VARIABLE_LABEL = "PushUpGraph"; // Put here your Variable label to which data  will be published
 
-const int PUBLISH_FREQUENCY = 500; // Update rate in milliseconds
+const int PUBLISH_FREQUENCY = 10; // Update rate in milliseconds
 
 unsigned long timer;
-uint8_t analogPin = 32; // Pin used to read data from GPIO34 ADC_CH6.
+//uint8_t analogPin = 32; // Pin used to read data from GPIO34 ADC_CH6.
 
 Ubidots ubidots(UBIDOTS_TOKEN);
 
