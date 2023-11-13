@@ -14,8 +14,8 @@ byte nilai[panjang_data];
 int jumlah_data = 0;
 int jumlah_data_serial=0;
 
-const int banyak_slave = 2;
-byte address_slave[banyak_slave] = {0x45,0x46};
+const int banyak_slave = 3;
+byte address_slave[banyak_slave] = {0x45,0x46,0x47};
 int slave_index = 1;
 String from;
 
@@ -27,7 +27,7 @@ void upload_data() {
 
   for (int i = 0; i < banyak_slave; i++)
   {
-    if ((i % 2 == 1))
+    if (i > 0)
     {
       Serial.print(",");
     }
@@ -144,6 +144,10 @@ void loop() {
   if(detik_skrg-detik_sblm >= jarak_waktu){
     detik_sblm = detik_skrg;
     
-    // request_data()
+    // cek dan memastikan agar tidak request data ketika sedang menerima data 
+    // if (i == 0)
+    // {
+    //   request_data();
+    // }
   }
 }
