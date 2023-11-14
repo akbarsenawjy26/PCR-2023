@@ -1,7 +1,4 @@
 #include <Arduino.h>
-#include <SoftwareSerial.h>
-
-SoftwareSerial Serial2 (8, 7); // RX, TX
 
 long int detik_skrg = 0;
 long int detik_sblm = 0;

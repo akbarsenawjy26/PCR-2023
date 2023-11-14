@@ -1,7 +1,4 @@
 #include <Arduino.h>
-#include <SoftwareSerial.h>
-
-SoftwareSerial Serial2 (8, 7); // RX, TX
 
 int Value1 = 9999, Value2 = 999;
 
