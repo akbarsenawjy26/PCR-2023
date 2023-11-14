@@ -28,8 +28,8 @@ void checksum_serial() {
       switch (nilai[2])
       {
       case 0x43:
-        Value1 = random(1000);
-        Value2 = random(100);
+        Value1 = random(1000,10000);
+        Value2 = random(10,100);
 
         // Master meminta data
         // Proses mengirim data yang diminta
