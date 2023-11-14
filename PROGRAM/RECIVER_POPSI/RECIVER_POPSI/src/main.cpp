@@ -15,8 +15,8 @@ byte address_slave[banyak_slave] = {0x45,0x46,0x47};
 
 byte kode = 0x42;
 
-int panjang_data_kirim = 2;
-byte nilai_kirim[panjang_data];
+const int panjang_data_kirim = 2;
+byte nilai_kirim[panjang_data_kirim];
 byte checksum[2];
 int jumlah_data = 0;
 
