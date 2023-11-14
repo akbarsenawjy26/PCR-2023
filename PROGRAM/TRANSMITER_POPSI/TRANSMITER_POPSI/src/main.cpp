@@ -7,8 +7,10 @@ long int detik_skrg = 0;
 long int detik_sblm = 0;
 long int jarak_waktu = 10;
 
-int Value1 = 0;
-const int panjang_data = 2+2;
+const int banyak_data_setiap_slave = 2;
+const int banyak_checksum = 2;
+int Value[banyak_data_setiap_slave] = {0,0};
+const int panjang_data = (banyak_data_setiap_slave + 2) + banyak_checksum;
 int i = 0;
 byte nilai[panjang_data];
 int jumlah_data = 0;
@@ -19,20 +21,25 @@ byte address_slave[banyak_slave] = {0x45,0x46,0x47};
 int slave_index = 1;
 String from;
 
-int final_value[banyak_slave]; 
+int final_value[banyak_slave][banyak_data_setiap_slave]; 
 
 void upload_data() {
   // save the data
-  final_value[slave_index - 1] = Value1;
+  for (int i = 0; i < banyak_data_setiap_slave; i++)
+  {
+    final_value[slave_index - 1][i] = Value[i];
+  }
 
   for (int i = 0; i < banyak_slave; i++)
-  {
-    if (i > 0)
+  {    
+    for (int j = 0; j < banyak_data_setiap_slave; j++)
     {
-      Serial.print(",");
+      if (i > 0 || j > 0)
+      {
+        Serial.print(",");
+      }
+      Serial.print(final_value[i][j]);
     }
-    
-    Serial.print(final_value[i]);
   }
   Serial.println();
 
@@ -70,13 +77,14 @@ void checksum_serial(){
   jumlah_data_serial = nilai[panjang_data-2] << 8 | nilai[panjang_data-1];
 
   if(jumlah_data == jumlah_data_serial){
-    Value1 = (nilai[0] << 8) | nilai[1];
+    Value[0] = (nilai[0] << 8) | nilai[1];
+    Value[1] = (nilai[2] << 8) | nilai[3];
 
     // Serial.println("Data dari slave " + from + " : " + (String)Value1);
 
     upload_data();
   } else{
-    Serial.println("GAGAL!");
+    Serial.println("GAGAL! checksum");
     
     // meminta data lagi jika data yang diterima gagal
     request_data();

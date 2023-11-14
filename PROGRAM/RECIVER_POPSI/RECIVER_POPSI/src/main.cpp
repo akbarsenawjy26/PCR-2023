@@ -3,7 +3,7 @@
 
 SoftwareSerial Serial2 (8, 7); // RX, TX
 
-int Value = 9999;
+int Value1 = 9999, Value2 = 999;
 
 const int panjang_data = 1+1+1;
 int i = 0;
@@ -15,8 +15,8 @@ byte address_slave[banyak_slave] = {0x45,0x46,0x47};
 
 byte kode = 0x42;
 
-int panjang_data_kirim = 2;
-byte nilai_kirim[panjang_data];
+const int panjang_data_kirim = 4;
+byte nilai_kirim[panjang_data_kirim];
 byte checksum[2];
 int jumlah_data = 0;
 
@@ -28,12 +28,15 @@ void checksum_serial() {
       switch (nilai[2])
       {
       case 0x43:
-        Value = random(100);
+        Value1 = random(1000);
+        Value2 = random(100);
 
         // Master meminta data
         // Proses mengirim data yang diminta
-        nilai_kirim[0] = (Value >> 8) & 0xFF;
-        nilai_kirim[1] = Value & 0xFF;
+        nilai_kirim[0] = (Value1 >> 8) & 0xFF;
+        nilai_kirim[1] = Value1 & 0xFF;
+        nilai_kirim[2] = (Value2 >> 8) & 0xFF;
+        nilai_kirim[3] = Value2 & 0xFF;
 
         for(int i=0;i < panjang_data_kirim; i++){
           jumlah_data += nilai_kirim[i];
