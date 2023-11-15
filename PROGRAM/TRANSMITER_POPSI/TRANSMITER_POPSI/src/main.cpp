@@ -3,16 +3,16 @@
 #include <Wire.h>
 #include <VL53L0X.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SH1106.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define OLED_SDA 21
+#define OLED_SCL 22
 
 int pushUpSkor = 0, pushUpThresholdVL = 15;
 bool flag = false;
 
 VL53L0X sensor;
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+Adafruit_SH1106 display(OLED_SDA, OLED_SCL);
 
 int i = 0;
 int x = 0;
@@ -28,12 +28,7 @@ void setup()
   sensor.init();
   sensor.setTimeout(500);
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-  { // Address 0x3C for 128x64
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ; // Don't proceed, loop forever
-  }
+  display.begin(SH1106_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
 
   if (!sensor.init())
@@ -48,23 +43,21 @@ void setup()
 
 void loop()
 {
-  uint16_t VLdistance = sensor.readRangeContinuousMillimeters()/10;
+  uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   display.println("VL-mode");
-  display.setCursor(0, 30);
-  display.println("Count:");
   display.setCursor(80, 30);
-  display.println(pushUpSkor);
+  display.println(VLdistance);
   display.display();
 
   if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
   {
     pushUpSkor += 1;
-    Serial.print("Skor Push Up = ");
-    Serial.println(pushUpSkor);
+    Serial.print("Jarak = ");
+    Serial.println(VLdistance);
     flag = true;
   }
   if (VLdistance > pushUpThresholdVL)
