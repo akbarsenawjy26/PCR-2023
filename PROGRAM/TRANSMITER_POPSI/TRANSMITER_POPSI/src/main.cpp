@@ -415,111 +415,127 @@ void setup()
 
 void loop()
 {
-  if(mode_tampilan == 0){
-    start();
-    mode_tampilan = 1;
-  }else if(mode_tampilan == 1){
-    if(tombol_down_ditekan == HIGH){
-      tombol++;
-      if(tombol>2){
-        tombol = 0;
-      }
-    }
-    
-    if(tombol == 0){
-      pribadi();
-    }else if(tombol == 1){
-      bersama();
-    }else if(tombol == 2){
-      setjarak();
-    }
+   switch(mode_tampilan){
+    case 0:
+      start();
+      mode_tampilan = 1;
+      break;
 
-    if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-      mode_tampilan = 2;
-    }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
-      mode_tampilan = 3;
-    }else if((tombol == 2) && (tombol_set_ditekan == HIGH)){
-      mode_tampilan = 4;
-    }
-  }else if(mode_tampilan == 2){
-    if(tombol_set_ditekan == HIGH){
-      countdown();
-      mode_tampilan == 5; //menu mqtt
-    }else{
-      press();
-    }
-  }else if(mode_tampilan == 3){
-    if(tombol_down_ditekan == HIGH){
-      tombol++;
-      if(tombol>1){
-        tombol = 0;
+    case 1:
+      if(tombol_down_ditekan == HIGH){
+        tombol++;
+        if(tombol>2){
+          tombol = 0;
+        }
       }
-    }
-    
-    if(tombol == 0){
-      wired();
-    }else if(tombol == 1){
-      wireless();
-    }
-
-    if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-      mode_tampilan = 6; //menu rs485
-    }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
-      mode_tampilan = 7; //menu espnow
-    }
-  }else if(mode_tampilan == 4){
-    if(tombol_set_ditekan == HIGH){
-      countdown();
-      mode_tampilan = 8;//menu setjarak
-    }else{
-      press();
-    }
-  }else if(mode_tampilan == 5){
-    mqtt();
-    if(tombol_set_ditekan == HIGH){
-      mode_tampilan = 9;
-    }
-  }else if(mode_tampilan == 6){
-    if (i==0) 
-    {
-      getSkor();
-    }
-
-    if (Serial2.available() > 0) {    
-      nilai[i] = Serial2.read();
-      i++;
-      if(i > panjang_data-1){
-        i = 0;
-        checksum_serial();
+      if(tombol == 0){
+        pribadi();
+      }else if(tombol == 1){
+        bersama();
+      }else if(tombol == 2){
+        setjarak();
       }
-      // for(int k = 0; k<panjang_data;k++){
-      //   Serial.print(nilai[k]);
-      // }
-      // Serial.println(); 
-    }
-    if(tombol_set_ditekan == HIGH){
-      mode_tampilan = 9;
-    }
-    
-  }else if(mode_tampilan == 7){
-    display.setTextSize(2);
-    display.setTextColor(WHITE);
-    display.setCursor(40,0);
-    display.println("ESPNOW:");
-    if(tombol_set_ditekan == HIGH){
-      mode_tampilan = 9;
-    }
-  }else if(mode_tampilan == 8){
-    display.setTextSize(2);
-    display.setTextColor(WHITE);
-    display.setCursor(40,0);
-    display.println("SETJARAK:");
-    if(tombol_set_ditekan == HIGH){
-      mode_tampilan = 9;
-    }
-  }else if(mode_tampilan == 9){
-    TotalPU();
+      if((tombol == 0) && (tombol_set_ditekan == HIGH)){
+        mode_tampilan = 2;
+      }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
+        mode_tampilan = 3;
+      }else if((tombol == 2) && (tombol_set_ditekan == HIGH)){
+        mode_tampilan = 4;
+      }
+      break;
+
+    case 2:
+      if(tombol_set_ditekan == HIGH){
+        countdown();
+        mode_tampilan == 5; //menu mqtt
+      }else{
+        press();
+      }
+      break;
+
+    case 3:
+      if(tombol_down_ditekan == HIGH){
+        tombol++;
+        if(tombol>1){
+          tombol = 0;
+        }
+      }
+      if(tombol == 0){
+        wired();
+      }else if(tombol == 1){
+        wireless();
+      }
+
+      if((tombol == 0) && (tombol_set_ditekan == HIGH)){
+        mode_tampilan = 6; //menu rs485
+      }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
+        mode_tampilan = 7; //menu espnow
+      }
+      break;
+
+    case 4:
+      if(tombol_set_ditekan == HIGH){
+        countdown();
+        mode_tampilan = 8;//menu setjarak
+      }else{
+        press();
+      }
+      break;
+
+    case 5:
+      mqtt();
+      if(tombol_set_ditekan == HIGH){
+        mode_tampilan = 9;
+      }
+      break;
+
+    case 6:
+      if (i==0) 
+      {
+        getSkor();
+      }
+
+      if (Serial2.available() > 0) {    
+        nilai[i] = Serial2.read();
+        i++;
+        if(i > panjang_data-1){
+          i = 0;
+          checksum_serial();
+        }
+        // for(int k = 0; k<panjang_data;k++){
+        //   Serial.print(nilai[k]);
+        // }
+        // Serial.println(); 
+      }
+      if(tombol_set_ditekan == HIGH){
+        mode_tampilan = 9;
+      }
+      break;
+
+    case 7:
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(40,0);
+      display.println("ESPNOW:");
+      if(tombol_set_ditekan == HIGH){
+        mode_tampilan = 9;
+      }
+      break;
+
+    case 8:
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(40,0);
+      display.println("SETJARAK:");
+      if(tombol_set_ditekan == HIGH){
+        mode_tampilan = 9;
+      }
+      break;
+
+    case 9:
+      TotalPU();
+      break;
+      
   }
-  
 
 }
