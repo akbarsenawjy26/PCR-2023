@@ -34,12 +34,6 @@ int jumlah_data = 0;
 
 int jumlah=21;
 
-int mode_tampilan = 0;
-int tombol = 0;
-bool tombol_up_ditekan = 0;
-bool tombol_down_ditekan = 0;
-bool tombol_set_ditekan = 0;
-
 //----------------IKMAL-----------------------
 const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
 const char* password = "Penelitian2023"; // Kata sandi WiFi
@@ -112,6 +106,22 @@ void reconnect() {
 }
 
 //------------------------------PROGRAM MQTT----------------------------------------------------------
+//-----------------------------Button-------------------
+int tombol = 0;
+bool tombol_up_ditekan = 0;
+bool tombol_down_ditekan = 0;
+bool tombol_set_ditekan = 0;
+int mode_tampilan = 0;
+
+const int up_pin = 2;
+const int down_pin = 15;
+const int set_pin = 32;
+
+byte lastbuttonstate_up = 0;
+byte lastbuttonstate_down = 0;
+byte lastbuttonstate_set = 0;
+
+//-----------------------------Button Finish------------
 
 void start(){
   display.setTextSize(3);
@@ -364,14 +374,9 @@ void mqtt(){
     snprintf(fullTopic, sizeof(fullTopic), "%s/%d", topicGraph, adressDevice);
     //int randomData = random(0, 101);
     client.publish(fullTopic, String(VLdistance).c_str());
-    Serial.println("Data terkirim ke topik: " + String(VLdistance));
-
-
     if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
     {
       pushUpSkor += 1;
-      Serial.print("Skor Push Up = ");
-      Serial.println(pushUpSkor);
       char fullTopicScore[50];
       snprintf(fullTopicScore, sizeof(fullTopicScore), "%s/%d", topicScore, adressDevice);
       client.publish(fullTopicScore, String(pushUpSkor).c_str());
@@ -410,6 +415,11 @@ void setup()
       ;
   }
 
+  pinMode(up_pin, INPUT);
+  pinMode(down_pin, INPUT);
+  pinMode(set_pin, INPUT);
+  
+
   sensor.startContinuous();
 }
 
@@ -422,6 +432,7 @@ void loop()
       break;
 
     case 1:
+      tombol_down_ditekan = digitalRead(down_pin);
       if(tombol_down_ditekan == HIGH){
         tombol++;
         if(tombol>2){
@@ -435,6 +446,7 @@ void loop()
       }else if(tombol == 2){
         setjarak();
       }
+      tombol_set_ditekan = digitalRead(set_pin);
       if((tombol == 0) && (tombol_set_ditekan == HIGH)){
         mode_tampilan = 2;
       }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
@@ -445,6 +457,7 @@ void loop()
       break;
 
     case 2:
+      tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan == HIGH){
         countdown();
         mode_tampilan == 5; //menu mqtt
@@ -454,6 +467,7 @@ void loop()
       break;
 
     case 3:
+      tombol_down_ditekan = digitalRead(down_pin);
       if(tombol_down_ditekan == HIGH){
         tombol++;
         if(tombol>1){
@@ -465,7 +479,7 @@ void loop()
       }else if(tombol == 1){
         wireless();
       }
-
+      tombol_set_ditekan = digitalRead(set_pin);
       if((tombol == 0) && (tombol_set_ditekan == HIGH)){
         mode_tampilan = 6; //menu rs485
       }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
@@ -474,6 +488,7 @@ void loop()
       break;
 
     case 4:
+      tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan == HIGH){
         countdown();
         mode_tampilan = 8;//menu setjarak
@@ -483,6 +498,7 @@ void loop()
       break;
 
     case 5:
+      tombol_set_ditekan = digitalRead(set_pin);
       mqtt();
       if(tombol_set_ditekan == HIGH){
         mode_tampilan = 9;
@@ -507,6 +523,7 @@ void loop()
         // }
         // Serial.println(); 
       }
+      tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan == HIGH){
         mode_tampilan = 9;
       }
@@ -517,6 +534,7 @@ void loop()
       display.setTextColor(WHITE);
       display.setCursor(40,0);
       display.println("ESPNOW:");
+      tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan == HIGH){
         mode_tampilan = 9;
       }
@@ -527,6 +545,7 @@ void loop()
       display.setTextColor(WHITE);
       display.setCursor(40,0);
       display.println("SETJARAK:");
+      tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan == HIGH){
         mode_tampilan = 9;
       }
@@ -534,8 +553,12 @@ void loop()
 
     case 9:
       TotalPU();
+      tombol_set_ditekan = digitalRead(set_pin);
+      if(tombol_set_ditekan == HIGH){
+        mode_tampilan = 1;
+      }
       break;
-      
+
   }
 
 }
