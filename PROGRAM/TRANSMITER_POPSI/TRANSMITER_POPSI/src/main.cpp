@@ -430,6 +430,7 @@ void setup()
 
 void loop()
 {
+  display.clearDisplay();
    switch(mode_tampilan){
     case 0:
       start();
@@ -442,6 +443,11 @@ void loop()
         tombol++;
         if(tombol>2){
           tombol = 0;
+        }
+      }else if(tombol_up_ditekan == HIGH){
+        tombol--;
+        if(tombol<0){
+          tombol = 2;
         }
       }
       if(tombol == 0){
