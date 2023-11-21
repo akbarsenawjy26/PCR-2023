@@ -8,7 +8,7 @@
 #define OLED_SDA 21
 #define OLED_SCL 22
 
-int pushUpSkor = 0, pushUpThresholdVL = 15;
+int pushUpSkor = 0, pushUpThresholdVL = 100;
 bool flag = false;
 
 VL53L0X sensor;
@@ -85,10 +85,12 @@ void getSkor() {
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   display.println("VL-mode");
-  display.setCursor(0, 30);
+  display.setCursor(0, 20);
   display.println("Count:");
-  display.setCursor(80, 30);
+  display.setCursor(80, 20);
   display.println(pushUpSkor);
+  display.setCursor(0, 40);
+  display.println(VLdistance);
   display.display();
 
   if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
