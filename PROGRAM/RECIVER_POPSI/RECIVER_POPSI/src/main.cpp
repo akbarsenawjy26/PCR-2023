@@ -23,7 +23,7 @@ String from;
 
 long int time_skrg = 0;
 long int time_sblm = 0;
-long int timeout = 2000;
+long int timeout = 500;
 bool wait_timeout = false;
 int coba_lagi = 3;
 int j = 1;

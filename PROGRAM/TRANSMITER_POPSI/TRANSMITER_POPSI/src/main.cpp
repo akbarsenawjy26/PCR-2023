@@ -75,10 +75,10 @@ void checksum_serial() {
   }
 
   // empty the receiver buffer
-  while (Serial2.available())
-  {
-    Serial2.read();
-  }
+  // while (Serial2.available())
+  // {
+  //   Serial2.read();
+  // }
 }
 
 void getSkor() {
@@ -137,12 +137,13 @@ void setup()
 
 void loop()
 {
+  getSkor();
+
   if (Serial2.available() > 0) {    
     nilai[i] = Serial2.read();
     i++;
     if(i > panjang_data-1){
       i = 0;
-      // getSkor();
       checksum_serial();
     }
     // for(int k = 0; k<panjang_data;k++){
