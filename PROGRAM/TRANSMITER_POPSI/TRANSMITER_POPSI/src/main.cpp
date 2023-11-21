@@ -5,10 +5,13 @@
 #include <Adafruit_GFX.h>
 #include <PubSubClient.h>
 #include <Adafruit_SH1106.h>
+#include <Preferences.h>
 
 #define OLED_SDA 21
 #define OLED_SCL 22
 
+Preferences push_up;
+int jarak_set = 0;
 int pushUpSkor = 0, pushUpThresholdVL = 100;
 bool flag = false;
 
@@ -393,6 +396,8 @@ void mqtt(){
 
 void setup()
 {
+  push_up.begin("data",false);
+  
   Serial.begin(115200);
   Serial2.begin(9600);
   //WiFi.mode(WIFI_STA);
@@ -498,8 +503,10 @@ void loop()
       break;
 
     case 5:
-      tombol_set_ditekan = digitalRead(set_pin);
+      jarak_set = push_up.getUInt("jaraksetup",0);
+      pushUpThresholdVL = jarak_set-(0.3*jarak_set);
       mqtt();
+      tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan == HIGH){
         mode_tampilan = 9;
       }
@@ -545,6 +552,7 @@ void loop()
       display.setTextColor(WHITE);
       display.setCursor(40,0);
       display.println("SETJARAK:");
+      push_up.putUInt("jaraksetup", 150);
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan == HIGH){
         mode_tampilan = 9;
