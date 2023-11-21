@@ -25,7 +25,7 @@ long int time_skrg = 0;
 long int time_sblm = 0;
 long int timeout = 500;
 bool wait_timeout = false;
-int coba_lagi = 3;
+int coba_lagi = 1;
 int j = 1;
 
 int final_value[banyak_slave][banyak_data_setiap_slave]; 

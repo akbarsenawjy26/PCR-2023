@@ -41,8 +41,8 @@ void checksum_serial() {
       case 0x43:
         // Master meminta data
         // Proses mengirim data yang diminta
-        Value1 = random(1000,10000);
-        Value2 = random(10,100);
+        // Value1 = random(1000,10000);
+        // Value2 = random(10,100);
         
         nilai_kirim[0] = (Value1 >> 8) & 0xFF;
         nilai_kirim[1] = Value1 & 0xFF;
@@ -137,7 +137,10 @@ void setup()
 
 void loop()
 {
-  getSkor();
+  if (i==0) 
+  {
+    getSkor();
+  }
 
   if (Serial2.available() > 0) {    
     nilai[i] = Serial2.read();
