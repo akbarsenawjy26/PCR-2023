@@ -188,7 +188,8 @@ void loop() {
     if (j == coba_lagi)
     {
       j = 0;
-      Serial.println("timeout");
+      Serial.print("timeout: ");
+      Serial.println(slave_index);
       Value[0] = 0;
       Value[1] = 0;
       upload_data();

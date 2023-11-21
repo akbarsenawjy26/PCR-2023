@@ -134,13 +134,12 @@ void setup()
 
 void loop()
 {
-  getSkor();
-
   if (Serial2.available() > 0) {    
     nilai[i] = Serial2.read();
     i++;
     if(i > panjang_data-1){
       i = 0;
+      // getSkor();
       checksum_serial();
     }
     // for(int k = 0; k<panjang_data;k++){
