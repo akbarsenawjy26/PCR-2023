@@ -54,13 +54,6 @@ const char* topicGraph = "/esp32/data/sensor/graph";
 const char* topicScore = "/esp32/data/sensor/score"; 
 unsigned long lastMsg = 0;
 
-//-----------------------------DEFINE MQTT-------------------------------------------------------------
-
-int i = 0;
-int x = 0;
-double rata;
-bool start = false;
-
 //------------------------------PROGRAM MQTT----------------------------------------------------------
 void setup_wifi() {
 
@@ -346,11 +339,62 @@ void getSkor() {
   Value2 = pushUpSkor;
 }
 
+void mqtt(){
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+  long now = millis();
+  if (now - lastMsg > 1) {
+    lastMsg = now;
+
+    uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("VL-mode");
+    display.setCursor(0, 30);
+    display.println("Count : ");  
+    display.setCursor(80, 30);
+    display.println(pushUpSkor);
+    display.display();
+
+    char fullTopic[50]; // Array char untuk menyimpan topik MQTT lengkap
+    snprintf(fullTopic, sizeof(fullTopic), "%s/%d", topicGraph, adressDevice);
+    //int randomData = random(0, 101);
+    client.publish(fullTopic, String(VLdistance).c_str());
+    Serial.println("Data terkirim ke topik: " + String(VLdistance));
+
+
+    if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
+    {
+      pushUpSkor += 1;
+      Serial.print("Skor Push Up = ");
+      Serial.println(pushUpSkor);
+      char fullTopicScore[50];
+      snprintf(fullTopicScore, sizeof(fullTopicScore), "%s/%d", topicScore, adressDevice);
+      client.publish(fullTopicScore, String(pushUpSkor).c_str());
+      flag = true;
+    }
+    if (VLdistance > pushUpThresholdVL)
+    {
+      flag = false;
+    }
+    client.loop();
+    delay(100);
+  }
+}
+
 void setup()
 {
   Serial.begin(115200);
   Serial2.begin(9600);
-  WiFi.mode(WIFI_STA);
+  //WiFi.mode(WIFI_STA);
+
+  setup_wifi();
+  client.setServer(mqttServer, 1883);
+  client.setCallback(callback);
 
   Wire.begin();
   sensor.init();
@@ -431,10 +475,7 @@ void loop()
       press();
     }
   }else if(mode_tampilan == 5){
-    display.setTextSize(2);
-    display.setTextColor(WHITE);
-    display.setCursor(40,0);
-    display.println("MQTT:");
+    mqtt();
     if(tombol_set_ditekan == HIGH){
       mode_tampilan = 9;
     }
@@ -479,5 +520,6 @@ void loop()
   }else if(mode_tampilan == 9){
     TotalPU();
   }
+  
 
 }
