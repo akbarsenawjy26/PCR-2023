@@ -3,6 +3,7 @@
 #include <Wire.h>
 #include <VL53L0X.h>
 #include <Adafruit_GFX.h>
+#include <PubSubClient.h>
 #include <Adafruit_SH1106.h>
 
 #define OLED_SDA 21
@@ -38,6 +39,86 @@ int tombol = 0;
 bool tombol_up_ditekan = 0;
 bool tombol_down_ditekan = 0;
 bool tombol_set_ditekan = 0;
+
+//----------------IKMAL-----------------------
+const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
+const char* password = "Penelitian2023"; // Kata sandi WiFi
+const char* mqttServer = "broker.mqtt-dashboard.com"; // Alamat broker MQTT
+int mqttPort = 1883; // Port broker MQTT
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+int adressDevice = 57; // Nilai integer
+const char* topicGraph = "/esp32/data/sensor/graph"; 
+const char* topicScore = "/esp32/data/sensor/score"; 
+unsigned long lastMsg = 0;
+
+//-----------------------------DEFINE MQTT-------------------------------------------------------------
+
+int i = 0;
+int x = 0;
+double rata;
+bool start = false;
+
+//------------------------------PROGRAM MQTT----------------------------------------------------------
+void setup_wifi() {
+
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  randomSeed(micros());
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = "ESP32Client-";
+    clientId += String(random(0xffff), HEX);
+    
+    // Attempt to connect
+    if (client.connect(clientId.c_str())) {
+      Serial.println("connected");
+      client.subscribe("/esp32/mqtt/in");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
+//------------------------------PROGRAM MQTT----------------------------------------------------------
 
 void start(){
   display.setTextSize(3);
