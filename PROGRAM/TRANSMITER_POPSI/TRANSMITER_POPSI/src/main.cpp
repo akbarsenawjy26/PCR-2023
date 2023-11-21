@@ -85,8 +85,10 @@ void getSkor() {
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   display.println("VL-mode");
+  display.setCursor(0, 30);
+  display.println("Count:");
   display.setCursor(80, 30);
-  display.println(VLdistance);
+  display.println(pushUpSkor);
   display.display();
 
   if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
