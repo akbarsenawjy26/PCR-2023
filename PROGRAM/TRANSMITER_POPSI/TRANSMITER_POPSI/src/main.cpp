@@ -38,8 +38,8 @@ int jumlah_data = 0;
 int jumlah=21;
 
 //----------------IKMAL-----------------------
-const char* ssid = "Terserah_Aja"; // Nama jaringan WiFi
-const char* password = "Imroatul2023"; // Kata sandi WiFi
+const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
+const char* password = "Penelitian2023"; // Kata sandi WiFi
 const char* mqttServer = "broker.mqtt-dashboard.com"; // Alamat broker MQTT
 int mqttPort = 1883; // Port broker MQTT
 
