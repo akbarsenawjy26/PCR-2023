@@ -38,8 +38,8 @@ int jumlah_data = 0;
 int jumlah=21;
 
 //----------------IKMAL-----------------------
-const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
-const char* password = "Penelitian2023"; // Kata sandi WiFi
+const char* ssid = "Terserah_Aja"; // Nama jaringan WiFi
+const char* password = "Imroatul2023"; // Kata sandi WiFi
 const char* mqttServer = "broker.mqtt-dashboard.com"; // Alamat broker MQTT
 int mqttPort = 1883; // Port broker MQTT
 
@@ -114,15 +114,15 @@ int tombol = 0;
 bool tombol_up_ditekan = 0;
 bool tombol_down_ditekan = 0;
 bool tombol_set_ditekan = 0;
+bool lastbuttonstate_up = 0;
+bool lastbuttonstate_down = 0;
+bool lastbuttonstate_set = 0;
 int mode_tampilan = 0;
 
-const int up_pin = 2;
-const int down_pin = 15;
+const int up_pin = 15;
+const int down_pin = 2;
 const int set_pin = 32;
 
-byte lastbuttonstate_up = 0;
-byte lastbuttonstate_down = 0;
-byte lastbuttonstate_set = 0;
 
 //-----------------------------Button Finish------------
 
@@ -439,16 +439,24 @@ void loop()
 
     case 1:
       tombol_down_ditekan = digitalRead(down_pin);
-      if(tombol_down_ditekan == HIGH){
-        tombol++;
-        if(tombol>2){
-          tombol = 0;
+      if(tombol_down_ditekan != lastbuttonstate_down){
+        if(tombol_down_ditekan == HIGH){
+          tombol++;
+          if(tombol>2){
+            tombol = 0;
+          }
         }
-      }else if(tombol_up_ditekan == HIGH){
-        tombol--;
-        if(tombol<0){
-          tombol = 2;
+        lastbuttonstate_down = tombol_down_ditekan;
+      }
+      tombol_up_ditekan = digitalRead(up_pin);
+      if(tombol_up_ditekan != lastbuttonstate_up){
+        if(tombol_up_ditekan == HIGH){
+          tombol--;
+          if(tombol<0){
+            tombol = 2;
+          }
         }
+        lastbuttonstate_up = tombol_up_ditekan;
       }
       if(tombol == 0){
         pribadi();
@@ -458,32 +466,51 @@ void loop()
         setjarak();
       }
       tombol_set_ditekan = digitalRead(set_pin);
-      if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 2;
-      }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 3;
-      }else if((tombol == 2) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 4;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if((tombol == 0) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 2;
+        }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 3;
+        }else if((tombol == 2) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 4;
+        } 
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 2:
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        countdown();
-        mode_tampilan == 5; //menu mqtt
-      }else{
-        press();
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          countdown();
+          mode_tampilan = 5; //menu mqtt
+        }else if(tombol_set_ditekan == LOW){
+          press();
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 3:
       tombol_down_ditekan = digitalRead(down_pin);
-      if(tombol_down_ditekan == HIGH){
-        tombol++;
-        if(tombol>1){
-          tombol = 0;
+      if(tombol_down_ditekan != lastbuttonstate_down){
+        if(tombol_down_ditekan == HIGH){
+          tombol++;
+          if(tombol>1){
+            tombol = 0;
+          }
         }
+        lastbuttonstate_down = tombol_down_ditekan;
+      }
+      tombol_up_ditekan = digitalRead(up_pin);
+      if(tombol_up_ditekan != lastbuttonstate_up){
+        if(tombol_up_ditekan == HIGH){
+          tombol--;
+          if(tombol<0){
+            tombol = 1;
+          }
+        }
+        lastbuttonstate_up = tombol_up_ditekan;
       }
       if(tombol == 0){
         wired();
@@ -491,20 +518,26 @@ void loop()
         wireless();
       }
       tombol_set_ditekan = digitalRead(set_pin);
-      if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 6; //menu rs485
-      }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 7; //menu espnow
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if((tombol == 0) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 6; //menu rs485
+        }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 7; //menu espnow
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 4:
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        countdown();
-        mode_tampilan = 8;//menu setjarak
-      }else{
-        press();
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          countdown();
+          mode_tampilan = 8;//menu setjarak
+        }else{
+          press();
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
@@ -513,8 +546,11 @@ void loop()
       pushUpThresholdVL = jarak_set-(0.3*jarak_set);
       mqtt();
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
@@ -537,8 +573,11 @@ void loop()
         // Serial.println(); 
       }
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
@@ -547,9 +586,13 @@ void loop()
       display.setTextColor(WHITE);
       display.setCursor(40,0);
       display.println("ESPNOW:");
+      display.display();
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
@@ -558,18 +601,25 @@ void loop()
       display.setTextColor(WHITE);
       display.setCursor(40,0);
       display.println("SETJARAK:");
+      display.display();
       push_up.putUInt("jaraksetup", 150);
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 9:
       TotalPU();
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 1;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 1;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
