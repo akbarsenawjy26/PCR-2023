@@ -500,12 +500,12 @@ void setup()
   Serial.begin(115200);
   Serial2.begin(9600);
 
-  if(jumlah == 10){
+  if(jumlah == 0){
+    WiFi.mode(WIFI_STA);
+  }else if(jumlah == 1){
     setup_wifi();
     client.setServer(mqttServer, 1883);
     client.setCallback(callback);
-  }else if(jumlah == 11){
-    WiFi.mode(WIFI_STA);
   }
   
   Wire.begin();
@@ -545,7 +545,7 @@ void setup()
   
 
   sensor.startContinuous();
-  //mode_tampilan = 10;
+  mode_tampilan = 10;
 }
 
 void loop()
@@ -588,9 +588,6 @@ void loop()
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-          setup_wifi();
-          client.setServer(mqttServer, 1883);
-          client.setCallback(callback);
           mode_tampilan = 2;
         }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
           mode_tampilan = 3;
@@ -671,7 +668,6 @@ void loop()
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if(tombol_set_ditekan == HIGH){
-          WiFi.disconnect();
           mode_tampilan = 9;
         }
         lastbuttonstate_set = tombol_set_ditekan;
