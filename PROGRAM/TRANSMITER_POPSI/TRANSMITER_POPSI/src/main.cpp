@@ -109,25 +109,24 @@ unsigned long lastMsg = 0;
 void setup_wifi() {
 
   delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.mode(WIFI_STA);
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("Connecting to ");
+  display.println(ssid);
+  display.display();
   WiFi.begin(ssid, password);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    display.print(".");
+    display.display();
   }
-
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  display.println("");
+  display.println("WiFi connected");
+  display.println("IP address: ");
+  display.println(WiFi.localIP());
+  display.display();
+  delay(1000);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -500,13 +499,7 @@ void setup()
   Serial.begin(115200);
   Serial2.begin(9600);
 
-  if(jumlah == 0){
-    WiFi.mode(WIFI_STA);
-  }else if(jumlah == 1){
-    setup_wifi();
-    client.setServer(mqttServer, 1883);
-    client.setCallback(callback);
-  }
+  WiFi.mode(WIFI_STA);
   
   Wire.begin();
   sensor.init();
@@ -545,7 +538,7 @@ void setup()
   
 
   sensor.startContinuous();
-  mode_tampilan = 10;
+  //mode_tampilan = 10;
 }
 
 void loop()
@@ -588,6 +581,10 @@ void loop()
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if((tombol == 0) && (tombol_set_ditekan == HIGH)){
+          display.clearDisplay();
+          setup_wifi();
+          client.setServer(mqttServer, 1883);
+          client.setCallback(callback);
           mode_tampilan = 2;
         }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
           mode_tampilan = 3;
@@ -668,6 +665,7 @@ void loop()
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if(tombol_set_ditekan == HIGH){
+          WiFi.disconnect();
           mode_tampilan = 9;
         }
         lastbuttonstate_set = tombol_set_ditekan;
