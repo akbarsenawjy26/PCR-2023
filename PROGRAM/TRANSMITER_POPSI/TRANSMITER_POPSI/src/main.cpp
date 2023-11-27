@@ -203,7 +203,7 @@ void setjarak(){
 }*/
 
 void wired(){
-  display.setTextSize(2);
+  display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(40,0);
   display.println("Bersama:");
@@ -430,10 +430,12 @@ void setup()
 
 void loop()
 {
+  display.clearDisplay();
    switch(mode_tampilan){
     case 0:
       start();
       mode_tampilan = 1;
+      display.clearDisplay();
       break;
 
     case 1:
