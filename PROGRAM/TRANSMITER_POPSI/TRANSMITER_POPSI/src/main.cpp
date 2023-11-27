@@ -11,6 +11,9 @@
 #define OLED_SDA 21
 #define OLED_SCL 22
 
+//sensor
+uint16_t VLdistance;
+
 //ESPNOW
 uint8_t broadcastAddress[] = {0x08, 0xB6, 0x1F, 0x71, 0xBB, 0x84};
 
@@ -379,7 +382,7 @@ void checksum_serial() {
 }
 
 void getSkor() {
-  uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
+  VLdistance = sensor.readRangeContinuousMillimeters();
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -418,7 +421,7 @@ void mqtt(){
   if (now - lastMsg > 1) {
     lastMsg = now;
 
-    uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
+    VLdistance = sensor.readRangeContinuousMillimeters();
     display.clearDisplay();
     display.setTextSize(2);
     display.setTextColor(WHITE);
@@ -544,6 +547,7 @@ void setup()
 
   sensor.startContinuous();
   //mode_tampilan = 10;
+  
 }
 
 void loop()
@@ -725,10 +729,9 @@ void loop()
       display.setTextColor(WHITE);
       display.setCursor(40,0);
       display.println("SETJARAK:");
-      display.display();
 
       //Mencari rata-rata nilai ketinggian dada
-      uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
+      VLdistance = sensor.readRangeContinuousMillimeters();
       waktu_skrg_setjarak = millis();
       if(waktu_skrg_setjarak-waktu_sblm_setjarak >= interval_setjarak){
         jumlah_ratarata++;
@@ -736,12 +739,19 @@ void loop()
         rata_rata_jarak = total_ratarata/jumlah_ratarata;
         waktu_sblm_setjarak = waktu_skrg_setjarak;
       }
+      display.setTextSize(3);
+      display.setTextColor(WHITE);
+      display.setCursor(50,25);
+      display.println(rata_rata_jarak);
+      display.display();
 
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if(tombol_set_ditekan == HIGH){
           push_up.putUInt("jaraksetup", rata_rata_jarak);
-          mode_tampilan = 9;
+          jumlah_ratarata = 0;
+          total_ratarata = 0;
+          mode_tampilan = 11;
         }
         lastbuttonstate_set = tombol_set_ditekan;
       }
@@ -798,7 +808,24 @@ void loop()
         lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
-
+      
+    case 11:
+      display.setTextSize(1);
+      display.setTextColor(WHITE);
+      display.setCursor(24,0);
+      display.println("Rata-rata Tinggi");
+      display.setTextSize(3);
+      display.setTextColor(WHITE);
+      display.setCursor(50,25);
+      display.println(rata_rata_jarak);
+      display.display();
+      tombol_set_ditekan = digitalRead(set_pin);
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 1;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
+      }
   }
 
 }
