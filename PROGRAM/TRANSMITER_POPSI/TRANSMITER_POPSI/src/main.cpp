@@ -6,14 +6,68 @@
 #include <PubSubClient.h>
 #include <Adafruit_SH1106.h>
 #include <Preferences.h>
+#include <esp_now.h>
 
 #define OLED_SDA 21
 #define OLED_SCL 22
 
+//ESPNOW
+uint8_t broadcastAddress[] = {0x08, 0xB6, 0x1F, 0x71, 0xBB, 0x84};
+
+typedef struct struct_message
+{
+  uint16_t VLdistance;
+} struct_message;
+
+struct_message dataSensor;
+
+esp_now_peer_info_t peerInfo;
+
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
+{
+  Serial.print("\r\nLast Packet Send Status:\t");
+  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+}
+
+unsigned long waktu_skrg = 0, waktu_sblm = 0, interval = 10;
+
+//Moving Average
+const int numReadings  = 10;
+uint16_t readings [numReadings];
+int readIndex  = 0;
+long total  = 0;  
+int aisVal  = 0;
+
+int pushUpSkor_vl = 0;
+bool flag = false;
+
+int pushUpThresholddown = 50;
+int pushUpThresholdup = 200;
+int pushUpThresholdup_up = 600;
+
+unsigned long waktu_skrg_vl = 0, waktu_sblm_vl = 0, interval_vl = 10;
+
+long smooth(uint16_t data_VL) { 
+  long average;
+  total = total - readings[readIndex];
+  readings[readIndex] = data_VL;
+  total = total + readings[readIndex];
+  readIndex = readIndex + 1;
+  if (readIndex >= numReadings) {
+    readIndex = 0;
+  }
+  average = total / numReadings;
+
+  return average;
+}
+
+//END ESPNOW
+
 Preferences push_up;
+Preferences coba;
 int jarak_set = 0;
 int pushUpSkor = 0, pushUpThresholdVL = 100;
-bool flag = false;
+bool flag_vl = false;
 
 VL53L0X sensor;
 Adafruit_SH1106 display(OLED_SDA, OLED_SCL);
@@ -35,11 +89,11 @@ byte nilai_kirim[panjang_data_kirim];
 byte checksum[2];
 int jumlah_data = 0;
 
-int jumlah=21;
+int jumlah;
 
 //----------------IKMAL-----------------------
-const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
-const char* password = "Penelitian2023"; // Kata sandi WiFi
+const char* ssid = "Terserah_Aja"; // Nama jaringan WiFi
+const char* password = "Imroatul2023"; // Kata sandi WiFi
 const char* mqttServer = "broker.mqtt-dashboard.com"; // Alamat broker MQTT
 int mqttPort = 1883; // Port broker MQTT
 
@@ -55,25 +109,24 @@ unsigned long lastMsg = 0;
 void setup_wifi() {
 
   delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.mode(WIFI_STA);
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("Connecting to ");
+  display.println(ssid);
+  display.display();
   WiFi.begin(ssid, password);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    display.print(".");
+    display.display();
   }
-
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  display.println("");
+  display.println("WiFi connected");
+  display.println("IP address: ");
+  display.println(WiFi.localIP());
+  display.display();
+  delay(1000);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -114,15 +167,15 @@ int tombol = 0;
 bool tombol_up_ditekan = 0;
 bool tombol_down_ditekan = 0;
 bool tombol_set_ditekan = 0;
+bool lastbuttonstate_up = 0;
+bool lastbuttonstate_down = 0;
+bool lastbuttonstate_set = 0;
 int mode_tampilan = 0;
 
-const int up_pin = 2;
-const int down_pin = 15;
+const int up_pin = 15;
+const int down_pin = 2;
 const int set_pin = 32;
 
-byte lastbuttonstate_up = 0;
-byte lastbuttonstate_down = 0;
-byte lastbuttonstate_set = 0;
 
 //-----------------------------Button Finish------------
 
@@ -394,18 +447,60 @@ void mqtt(){
   }
 }
 
+void espnow(){
+  uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
+  dataSensor.VLdistance = smooth(VLdistance);
+
+  waktu_skrg_vl = millis();
+  if(waktu_skrg_vl-waktu_sblm_vl >= interval_vl){
+    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&dataSensor, sizeof(dataSensor));
+
+    if (result == ESP_OK)
+    {
+      Serial.println("Sent with success");
+    }
+    else
+    {
+      Serial.println("Error sending the data");
+    }
+
+    waktu_sblm_vl = waktu_skrg_vl;
+  }
+
+  
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.println("VL-mode");
+  display.setCursor(0, 30);
+  display.println("Count:");
+  display.setCursor(80, 30);
+  display.println(pushUpSkor_vl);
+  display.display();
+
+  if (dataSensor.VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
+      flag = true;
+  }
+  if (dataSensor.VLdistance > pushUpThresholdup && dataSensor.VLdistance <=pushUpThresholdup_up && flag == true){
+      pushUpSkor_vl += 1;
+      Serial.println(pushUpSkor_vl);
+      Serial2.println(pushUpSkor_vl);
+      flag_vl = false;
+  }
+}
+
 void setup()
 {
   push_up.begin("data",false);
+  coba.begin("lagi", false);
+  jumlah = coba.getUInt("coba_jumlah");
   
   Serial.begin(115200);
   Serial2.begin(9600);
-  //WiFi.mode(WIFI_STA);
 
-  setup_wifi();
-  client.setServer(mqttServer, 1883);
-  client.setCallback(callback);
-
+  WiFi.mode(WIFI_STA);
+  
   Wire.begin();
   sensor.init();
   sensor.setTimeout(500);
@@ -423,9 +518,27 @@ void setup()
   pinMode(up_pin, INPUT);
   pinMode(down_pin, INPUT);
   pinMode(set_pin, INPUT);
+
+  if (esp_now_init() != ESP_OK)
+  {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+  esp_now_register_send_cb(OnDataSent);
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+
+  // Add peer
+  if (esp_now_add_peer(&peerInfo) != ESP_OK)
+  {
+    Serial.println("Failed to add peer");
+    return;
+  }
   
 
   sensor.startContinuous();
+  //mode_tampilan = 10;
 }
 
 void loop()
@@ -440,11 +553,24 @@ void loop()
 
     case 1:
       tombol_down_ditekan = digitalRead(down_pin);
-      if(tombol_down_ditekan == HIGH){
-        tombol++;
-        if(tombol>2){
-          tombol = 0;
+      if(tombol_down_ditekan != lastbuttonstate_down){
+        if(tombol_down_ditekan == HIGH){
+          tombol++;
+          if(tombol>2){
+            tombol = 0;
+          }
         }
+        lastbuttonstate_down = tombol_down_ditekan;
+      }
+      tombol_up_ditekan = digitalRead(up_pin);
+      if(tombol_up_ditekan != lastbuttonstate_up){
+        if(tombol_up_ditekan == HIGH){
+          tombol--;
+          if(tombol<0){
+            tombol = 2;
+          }
+        }
+        lastbuttonstate_up = tombol_up_ditekan;
       }
       if(tombol == 0){
         pribadi();
@@ -454,32 +580,55 @@ void loop()
         setjarak();
       }
       tombol_set_ditekan = digitalRead(set_pin);
-      if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 2;
-      }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 3;
-      }else if((tombol == 2) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 4;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if((tombol == 0) && (tombol_set_ditekan == HIGH)){
+          display.clearDisplay();
+          setup_wifi();
+          client.setServer(mqttServer, 1883);
+          client.setCallback(callback);
+          mode_tampilan = 2;
+        }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 3;
+        }else if((tombol == 2) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 4;
+        } 
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 2:
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        countdown();
-        mode_tampilan == 5; //menu mqtt
-      }else{
-        press();
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          countdown();
+          mode_tampilan = 5; //menu mqtt
+        }else if(tombol_set_ditekan == LOW){
+          press();
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 3:
       tombol_down_ditekan = digitalRead(down_pin);
-      if(tombol_down_ditekan == HIGH){
-        tombol++;
-        if(tombol>1){
-          tombol = 0;
+      if(tombol_down_ditekan != lastbuttonstate_down){
+        if(tombol_down_ditekan == HIGH){
+          tombol++;
+          if(tombol>1){
+            tombol = 0;
+          }
         }
+        lastbuttonstate_down = tombol_down_ditekan;
+      }
+      tombol_up_ditekan = digitalRead(up_pin);
+      if(tombol_up_ditekan != lastbuttonstate_up){
+        if(tombol_up_ditekan == HIGH){
+          tombol--;
+          if(tombol<0){
+            tombol = 1;
+          }
+        }
+        lastbuttonstate_up = tombol_up_ditekan;
       }
       if(tombol == 0){
         wired();
@@ -487,20 +636,26 @@ void loop()
         wireless();
       }
       tombol_set_ditekan = digitalRead(set_pin);
-      if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 6; //menu rs485
-      }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
-        mode_tampilan = 7; //menu espnow
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if((tombol == 0) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 6; //menu rs485
+        }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
+          mode_tampilan = 7; //menu espnow
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 4:
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        countdown();
-        mode_tampilan = 8;//menu setjarak
-      }else{
-        press();
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          countdown();
+          mode_tampilan = 8;//menu setjarak
+        }else{
+          press();
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
@@ -509,8 +664,12 @@ void loop()
       pushUpThresholdVL = jarak_set-(0.3*jarak_set);
       mqtt();
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          WiFi.disconnect();
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
@@ -533,19 +692,27 @@ void loop()
         // Serial.println(); 
       }
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 7:
-      display.setTextSize(2);
-      display.setTextColor(WHITE);
-      display.setCursor(40,0);
-      display.println("ESPNOW:");
+      // display.setTextSize(2);
+      // display.setTextColor(WHITE);
+      // display.setCursor(40,0);
+      // display.println("ESPNOW:");
+      // display.display();
+      espnow();
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
@@ -554,18 +721,66 @@ void loop()
       display.setTextColor(WHITE);
       display.setCursor(40,0);
       display.println("SETJARAK:");
+      display.display();
       push_up.putUInt("jaraksetup", 150);
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 9;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 9;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
     case 9:
       TotalPU();
       tombol_set_ditekan = digitalRead(set_pin);
-      if(tombol_set_ditekan == HIGH){
-        mode_tampilan = 1;
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          mode_tampilan = 1;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
+      }
+      break;
+    
+    case 10:
+      display.setTextSize(1);
+      display.setTextColor(WHITE);
+      display.setCursor(24,0);
+      display.println("Percobaan EEPROM");
+      display.setTextSize(3);
+      display.setTextColor(WHITE);
+      display.setCursor(50,25);
+      tombol_down_ditekan = digitalRead(down_pin);
+      if(tombol_down_ditekan != lastbuttonstate_down){
+        if(tombol_down_ditekan == HIGH){
+          jumlah++;
+        }
+        lastbuttonstate_down = tombol_down_ditekan;
+      }
+      tombol_up_ditekan = digitalRead(up_pin);
+      if(tombol_up_ditekan != lastbuttonstate_up){
+        if(tombol_up_ditekan == HIGH){
+          jumlah--;
+        }
+        lastbuttonstate_up = tombol_up_ditekan;
+      }
+      display.println(jumlah);
+      display.display();
+      tombol_set_ditekan = digitalRead(set_pin);
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          display.clearDisplay();
+          display.setTextSize(2);
+          display.setTextColor(WHITE);
+          display.setCursor(50,25);
+          display.println("SAVING");
+          display.display();
+          delay(500);
+          coba.putUInt("coba_jumlah", jumlah);
+          mode_tampilan = 1;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
       }
       break;
 
