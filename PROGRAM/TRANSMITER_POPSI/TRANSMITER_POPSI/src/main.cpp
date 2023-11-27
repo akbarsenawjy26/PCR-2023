@@ -51,8 +51,10 @@ int pushUpThresholdup_up = 600;
 unsigned long waktu_skrg_vl = 0, waktu_sblm_vl = 0, interval_vl = 10;
 //setjarak
 unsigned long waktu_skrg_setjarak = 0, waktu_sblm_setjarak = 0, interval_setjarak = 100;
+unsigned long waktu_skrg_countdown_setjarak = 0, waktu_sblm_countdown_setjarak = 0, interval_countdown_setjarak = 1000;
 unsigned long rata_rata_jarak,total_ratarata;
 unsigned int jumlah_ratarata=0;
+int setjarak_countdown=6;
 
 long smooth(uint16_t data_VL) { 
   long average;
@@ -100,8 +102,8 @@ int jumlah_data = 0;
 int jumlah;
 
 //----------------IKMAL-----------------------
-const char* ssid = "TP-Link_AFBC"; // Nama jaringan WiFi
-const char* password = "Penelitian2023"; // Kata sandi WiFi
+const char* ssid = "Terserah_Aja"; // Nama jaringan WiFi
+const char* password = "Imroatul2023"; // Kata sandi WiFi
 const char* mqttServer = "broker.mqtt-dashboard.com"; // Alamat broker MQTT
 int mqttPort = 1883; // Port broker MQTT
 
@@ -460,7 +462,6 @@ void mqtt(){
   long now = millis();
   if (now - lastMsg > 1) {
     lastMsg = now;
-
     VLdistance = sensor.readRangeContinuousMillimeters();
     display.clearDisplay();
     display.setTextSize(2);
@@ -477,19 +478,19 @@ void mqtt(){
     snprintf(fullTopic, sizeof(fullTopic), "%s/%d", topicGraph, adressDevice);
     //int randomData = random(0, 101);
     client.publish(fullTopic, String(VLdistance).c_str());
-    if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
-    {
+
+    if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0){
       pushUpSkor += 1;
       char fullTopicScore[50];
       snprintf(fullTopicScore, sizeof(fullTopicScore), "%s/%d", topicScore, adressDevice);
       client.publish(fullTopicScore, String(pushUpSkor).c_str());
       flag = true;
     }
-    if (VLdistance > pushUpThresholdVL)
-    {
+    if (VLdistance > pushUpThresholdVL){
       flag = false;
     }
     client.loop();
+
     delay(100);
   }
 }
@@ -548,7 +549,7 @@ void setup()
     slave_index = 1;
   }
 
-  push_up.begin("data",false);
+  push_up.begin("jaraksetup",false);
   coba.begin("lagi", false);
   
   Serial.begin(115200);
@@ -709,7 +710,7 @@ void loop()
       if(tombol_set_ditekan != lastbuttonstate_set){
         if(tombol_set_ditekan == HIGH){
           countdown();
-          mode_tampilan = 8;//menu setjarak
+          mode_tampilan = 10;//menu setjarak
         }else{
           press();
         }
@@ -814,6 +815,41 @@ void loop()
       break;
     
     case 10:
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(10,0);
+      display.println("SET JARAK");
+      waktu_skrg_countdown_setjarak = millis();
+      if(waktu_skrg_countdown_setjarak-waktu_sblm_countdown_setjarak >= interval_countdown_setjarak){
+        setjarak_countdown--;
+        waktu_sblm_countdown_setjarak = waktu_skrg_countdown_setjarak;
+      }
+      //Mencari rata-rata nilai ketinggian dada
+      VLdistance = sensor.readRangeContinuousMillimeters();
+      waktu_skrg_setjarak = millis();
+      if(waktu_skrg_setjarak-waktu_sblm_setjarak >= interval_setjarak){
+        jumlah_ratarata++;
+        total_ratarata = total_ratarata + VLdistance;
+        rata_rata_jarak = total_ratarata/jumlah_ratarata;
+        waktu_sblm_setjarak = waktu_skrg_setjarak;
+      }
+      display.setTextSize(3);
+      display.setTextColor(WHITE);
+      display.setCursor(50,25);
+      display.println(setjarak_countdown);
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(45,50);
+      display.println(rata_rata_jarak);
+      display.display();
+
+      if(setjarak_countdown <= 0){
+        push_up.putUInt("jaraksetup", rata_rata_jarak);
+        jumlah_ratarata = 0;
+        total_ratarata = 0;
+        setjarak_countdown = 6;
+        mode_tampilan = 11;
+      }
       break;
       
     case 11:
@@ -823,7 +859,7 @@ void loop()
       display.println("Rata-rata Tinggi");
       display.setTextSize(3);
       display.setTextColor(WHITE);
-      display.setCursor(50,25);
+      display.setCursor(40,25);
       display.println(rata_rata_jarak);
       display.display();
       tombol_set_ditekan = digitalRead(set_pin);
@@ -833,6 +869,7 @@ void loop()
         }
         lastbuttonstate_set = tombol_set_ditekan;
       }
+      break;
   }
 
 }
