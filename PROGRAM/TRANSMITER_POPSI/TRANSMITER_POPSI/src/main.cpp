@@ -81,6 +81,7 @@ byte nilai[panjang_data];
 int slave_index = 1; // PENTING!!! isi sinteger sesuai slave ke berapa yang akan di upload
 const int banyak_slave = 3;
 byte address_slave[banyak_slave] = {0x45,0x46,0x47};
+Preferences slave_index_preferences;
 
 byte kode = 0x42;
 
@@ -405,6 +406,12 @@ void getSkor() {
   Value2 = pushUpSkor;
 }
 
+void setSlaveIndexPreferences(int index_nilai) {
+  // menyimpan variabel slave index dalam integer ke dalam preferences
+  // index nilai adalah nilai dari slave index
+  slave_index_preferences.putInt("index",index_nilai);
+}
+
 void mqtt(){
   if (!client.connected()) {
     reconnect();
@@ -492,6 +499,15 @@ void espnow(){
 
 void setup()
 {
+  slave_index_preferences.begin("index",false);
+  // mendapatkan nilai slave index dari preferences, jika tidak ada value didalamnya maka akan mendapatkan nilai 0
+  slave_index = slave_index_preferences.getInt("index",0);
+  // jika tidak ada nilai di dalam preferences maka set default slave indexnya 1
+  if (slave_index == 0)
+  {
+    slave_index = 1;
+  }
+
   push_up.begin("data",false);
   coba.begin("lagi", false);
   jumlah = coba.getUInt("coba_jumlah");
