@@ -77,6 +77,8 @@ void pribadi(){
   display.println("Bersama");
   display.setCursor(18,42);
   display.println("Set Jarak");
+  display.setCursor(18,54);
+  display.println("Setting");
   display.display();
 }
 
@@ -91,6 +93,8 @@ void bersama(){
   display.println("-> Bersama");
   display.setCursor(18,42);
   display.println("Set Jarak");
+  display.setCursor(18,54);
+  display.println("Setting");
   display.display();
 }
 
@@ -105,6 +109,24 @@ void setjarak(){
   display.println("Bersama");
   display.setCursor(0,42);
   display.println("-> Set Jarak");
+  display.setCursor(18,54);
+  display.println("Setting");
+  display.display();
+}
+
+void setting(){
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(48,0);
+  display.println("Menu");
+  display.setCursor(18,18);
+  display.println("Pribadi");
+  display.setCursor(18,30);
+  display.println("Bersama");
+  display.setCursor(18,42);
+  display.println("Set Jarak");
+  display.setCursor(0,54);
+  display.println("-> Setting");
   display.display();
 }
 
@@ -214,5 +236,6 @@ void loop() {
   //press();
   //countdown();
   //TotalPU();
+  //setting();
   logo();
 }
