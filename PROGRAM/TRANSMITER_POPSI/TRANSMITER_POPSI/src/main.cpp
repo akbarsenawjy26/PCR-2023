@@ -655,7 +655,7 @@ void loop()
       }
       break;
 
-    case 2:
+    case 2://menu mqtt
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if(tombol_set_ditekan == HIGH){
@@ -668,7 +668,7 @@ void loop()
       }
       break;
 
-    case 3:
+    case 3://menu bersama
       tombol_down_ditekan = digitalRead(down_pin);
       if(tombol_down_ditekan != lastbuttonstate_down){
         if(tombol_down_ditekan == HIGH){
@@ -705,7 +705,7 @@ void loop()
       }
       break;
 
-    case 4:
+    case 4://menu setjarak
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if(tombol_set_ditekan == HIGH){
@@ -718,7 +718,7 @@ void loop()
       }
       break;
 
-    case 5:
+    case 5://MQTT
       jarak_set = push_up.getUInt("jaraksetup",0);
       pushUpThresholdVL = jarak_set-(0.3*jarak_set);
       mqtt();
@@ -732,7 +732,7 @@ void loop()
       }
       break;
 
-    case 6:
+    case 6://RS485
       if (i==0) 
       {
         getSkor();
@@ -759,7 +759,7 @@ void loop()
       }
       break;
 
-    case 7:
+    case 7://ESPNOW
       espnow();
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
@@ -814,7 +814,7 @@ void loop()
       }
       break;
     
-    case 10:
+    case 10: //SETJARAK
       display.setTextSize(2);
       display.setTextColor(WHITE);
       display.setCursor(10,0);
@@ -842,7 +842,6 @@ void loop()
       display.setCursor(45,50);
       display.println(rata_rata_jarak);
       display.display();
-
       if(setjarak_countdown <= 0){
         push_up.putUInt("jaraksetup", rata_rata_jarak);
         jumlah_ratarata = 0;
