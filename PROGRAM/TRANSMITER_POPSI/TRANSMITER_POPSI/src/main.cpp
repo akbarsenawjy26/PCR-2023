@@ -75,7 +75,7 @@ long smooth(uint16_t data_VL) {
 Preferences push_up;
 Preferences coba;
 int jarak_set = 0;
-int pushUpSkor = 0, pushUpThresholdVL = 100;
+int pushUpSkor = 0, pushUpThresholdVL = 400;
 bool flag_vl = false;
 
 VL53L0X sensor;
@@ -432,16 +432,12 @@ void getSkor() {
   display.println(VLdistance);
   display.display();
 
-  if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0)
-  {
-    pushUpSkor += 1;
-    // Serial.print("Jarak = ");
-    // Serial.println(VLdistance);
-    flag = true;
+  if (VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
+      flag = true;
   }
-  if (VLdistance > pushUpThresholdVL)
-  {
-    flag = false;
+  if (VLdistance > pushUpThresholdVL && VLdistance <=pushUpThresholdup_up && flag == true){
+      pushUpSkor += 1;
+      flag = false;
   }
 
   Value1 = VLdistance;
@@ -479,16 +475,17 @@ void mqtt(){
     //int randomData = random(0, 101);
     client.publish(fullTopic, String(VLdistance).c_str());
 
-    if (VLdistance <= pushUpThresholdVL && flag == false && VLdistance != 0){
-      pushUpSkor += 1;
-      char fullTopicScore[50];
-      snprintf(fullTopicScore, sizeof(fullTopicScore), "%s/%d", topicScore, adressDevice);
-      client.publish(fullTopicScore, String(pushUpSkor).c_str());
+    if (VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
       flag = true;
     }
-    if (VLdistance > pushUpThresholdVL){
-      flag = false;
+    if (VLdistance > pushUpThresholdVL && VLdistance <=pushUpThresholdup_up && flag == true){
+        pushUpSkor += 1;
+        char fullTopicScore[50];
+        snprintf(fullTopicScore, sizeof(fullTopicScore), "%s/%d", topicScore, adressDevice);
+        client.publish(fullTopicScore, String(pushUpSkor).c_str());
+        flag = false;
     }
+
     client.loop();
 
     delay(100);
@@ -697,9 +694,9 @@ void loop()
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
         if((tombol == 0) && (tombol_set_ditekan == HIGH)){
-          mode_tampilan = 6; //menu rs485
+          mode_tampilan = 12; //menu rs485
         }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
-          mode_tampilan = 7; //menu espnow
+          mode_tampilan = 13; //menu espnow
         }
         lastbuttonstate_set = tombol_set_ditekan;
       }
@@ -733,6 +730,8 @@ void loop()
       break;
 
     case 6://RS485
+      jarak_set = push_up.getUInt("jaraksetup",0);
+      pushUpThresholdVL = jarak_set-(0.3*jarak_set);
       if (i==0) 
       {
         getSkor();
@@ -865,6 +864,30 @@ void loop()
       if(tombol_set_ditekan != lastbuttonstate_set){
         if(tombol_set_ditekan == HIGH){
           mode_tampilan = 1;
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
+      }
+      break;
+    case 12://menu rs485
+      tombol_set_ditekan = digitalRead(set_pin);
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          countdown();
+          mode_tampilan = 6; //rs485
+        }else if(tombol_set_ditekan == LOW){
+          press();
+        }
+        lastbuttonstate_set = tombol_set_ditekan;
+      }
+      break;
+    case 13://menu espnow
+      tombol_set_ditekan = digitalRead(set_pin);
+      if(tombol_set_ditekan != lastbuttonstate_set){
+        if(tombol_set_ditekan == HIGH){
+          countdown();
+          mode_tampilan = 7; //espnow
+        }else if(tombol_set_ditekan == LOW){
+          press();
         }
         lastbuttonstate_set = tombol_set_ditekan;
       }
