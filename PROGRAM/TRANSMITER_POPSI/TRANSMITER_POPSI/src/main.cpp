@@ -15,7 +15,7 @@
 uint16_t VLdistance;
 
 //ESPNOW
-uint8_t broadcastAddress[] = {0x08, 0xB6, 0x1F, 0x71, 0xBB, 0x84};
+uint8_t broadcastAddress[] = {0x08, 0xB6, 0x1F, 0x75, 0x60, 0x94};
 
 typedef struct struct_message
 {
@@ -102,8 +102,8 @@ int jumlah_data = 0;
 int jumlah;
 
 //----------------IKMAL-----------------------
-const char* ssid = "Terserah_Aja"; // Nama jaringan WiFi
-const char* password = "Imroatul2023"; // Kata sandi WiFi
+const char* ssid = "Galaxy A51 CF0A"; // Nama jaringan WiFi
+const char* password = "uuxz9656"; // Kata sandi WiFi
 const char* mqttServer = "broker.mqtt-dashboard.com"; // Alamat broker MQTT
 int mqttPort = 1883; // Port broker MQTT
 
