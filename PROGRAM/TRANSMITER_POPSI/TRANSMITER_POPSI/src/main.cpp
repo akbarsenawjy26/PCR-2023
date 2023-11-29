@@ -44,7 +44,7 @@ int aisVal  = 0;
 int pushUpSkor_vl = 0;
 bool flag = false;
 
-int pushUpThresholddown = 50;
+int pushUpThresholddown = 100;
 int pushUpThresholdup = 200;
 int pushUpThresholdup_up = 600;
 
@@ -521,17 +521,15 @@ void espnow(){
   display.setCursor(0, 30);
   display.println("Count:");
   display.setCursor(80, 30);
-  display.println(pushUpSkor_vl);
+  display.println(pushUpSkor);
   display.display();
 
   if (dataSensor.VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
       flag = true;
   }
-  if (dataSensor.VLdistance > pushUpThresholdup && dataSensor.VLdistance <=pushUpThresholdup_up && flag == true){
-      pushUpSkor_vl += 1;
-      Serial.println(pushUpSkor_vl);
-      Serial2.println(pushUpSkor_vl);
-      flag_vl = false;
+  if (dataSensor.VLdistance > pushUpThresholdVL && dataSensor.VLdistance <=pushUpThresholdup_up && flag == true){
+      pushUpSkor += 1;
+      flag = false;
   }
 }
 
@@ -759,6 +757,8 @@ void loop()
       break;
 
     case 7://ESPNOW
+      jarak_set = push_up.getUInt("jaraksetup",0);
+      pushUpThresholdVL = jarak_set-(0.3*jarak_set);
       espnow();
       tombol_set_ditekan = digitalRead(set_pin);
       if(tombol_set_ditekan != lastbuttonstate_set){
