@@ -16,8 +16,8 @@ byte nilai[panjang_data];
 int jumlah_data = 0;
 int jumlah_data_serial=0;
 
-const int banyak_slave = 3;
-byte address_slave[banyak_slave] = {0x45,0x46,0x47};
+const int banyak_slave = 2;
+byte address_slave[banyak_slave] = {0x45,0x46};
 int slave_index = 1;
 String from;
 

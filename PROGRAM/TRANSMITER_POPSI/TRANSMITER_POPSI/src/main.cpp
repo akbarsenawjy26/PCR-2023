@@ -44,7 +44,7 @@ int aisVal  = 0;
 int pushUpSkor_vl = 0;
 bool flag = false;
 
-int pushUpThresholddown = 50;
+int pushUpThresholddown = 100;
 int pushUpThresholdup = 200;
 int pushUpThresholdup_up = 600;
 
