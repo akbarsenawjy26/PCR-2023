@@ -87,7 +87,7 @@ const int panjang_data = 1+1+1;
 int i = 0;
 byte nilai[panjang_data];
 
-int slave_index = 1; // PENTING!!! isi sinteger sesuai slave ke berapa yang akan di upload
+int slave_index = 2; // PENTING!!! isi sinteger sesuai slave ke berapa yang akan di upload
 const int banyak_slave = 3;
 byte address_slave[banyak_slave] = {0x45,0x46,0x47};
 Preferences slave_index_preferences;
