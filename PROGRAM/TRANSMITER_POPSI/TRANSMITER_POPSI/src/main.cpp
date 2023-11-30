@@ -20,6 +20,7 @@ uint8_t broadcastAddress[] = {0x08, 0xB6, 0x1F, 0x75, 0x60, 0x94};
 typedef struct struct_message
 {
   uint16_t VLdistance;
+  int jumlah_pushup;
 } struct_message;
 
 struct_message dataSensor;
@@ -503,7 +504,8 @@ void espnow(){
   if(VLdistance>1000){
     VLdistance = 1000;
   }
-  dataSensor.VLdistance = smooth(VLdistance);
+  dataSensor.VLdistance = VLdistance;
+  dataSensor.jumlah_pushup = pushUpSkor;
 
   waktu_skrg_vl = millis();
   if(waktu_skrg_vl-waktu_sblm_vl >= interval_vl){
