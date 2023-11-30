@@ -103,7 +103,7 @@ void checksum_serial(){
 
     upload_data();
   } else{
-    Serial.println("GAGAL! checksum");
+    //Serial.println("GAGAL! checksum");
     
     // meminta data lagi jika data yang diterima gagal
     // request_data();
@@ -188,15 +188,15 @@ void loop() {
     if (j == coba_lagi)
     {
       j = 0;
-      Serial.print("timeout: ");
-      Serial.println(slave_index);
+      //Serial.print("timeout: ");
+      //Serial.println(slave_index);
       Value[0] = 0;
       // Value[1] = 0;
       upload_data();
     } else {
       wait_timeout = false;
       j++;
-      Serial.println("coba lagi ke : " + (String) j);
+      //Serial.println("coba lagi ke : " + (String) j);
     }
   }
   
