@@ -4,6 +4,7 @@
 typedef struct struct_message
 {
   uint16_t VLdistance;
+  int jumlah_pushup;
 } struct_message;
 
 struct_message dataSensor;
@@ -11,7 +12,11 @@ struct_message dataSensor;
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
   memcpy(&dataSensor, incomingData, sizeof(dataSensor));
-  Serial.println(String(dataSensor.VLdistance));
+  Serial.print(String(dataSensor.VLdistance));
+  Serial.print(',');
+  Serial.print(String(dataSensor.jumlah_pushup));
+  Serial.println(';');
+
 }
 
 void setup()
