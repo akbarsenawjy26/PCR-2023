@@ -419,6 +419,9 @@ void checksum_serial() {
 
 void getSkor() {
   VLdistance = sensor.readRangeContinuousMillimeters();
+  if(VLdistance>1000){
+    VLdistance = 1000;
+  }
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -459,6 +462,9 @@ void mqtt(){
   if (now - lastMsg > 1) {
     lastMsg = now;
     VLdistance = sensor.readRangeContinuousMillimeters();
+    if(VLdistance>1000){
+      VLdistance = 1000;
+    }
     display.clearDisplay();
     display.setTextSize(2);
     display.setTextColor(WHITE);
@@ -493,7 +499,10 @@ void mqtt(){
 }
 
 void espnow(){
-  uint16_t VLdistance = sensor.readRangeContinuousMillimeters();
+  VLdistance = sensor.readRangeContinuousMillimeters();
+  if(VLdistance>1000){
+    VLdistance = 1000;
+  }
   dataSensor.VLdistance = smooth(VLdistance);
 
   waktu_skrg_vl = millis();
@@ -524,10 +533,10 @@ void espnow(){
   display.println(pushUpSkor);
   display.display();
 
-  if (dataSensor.VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
+  if (VLdistance <= pushUpThresholddown && flag == false && VLdistance != 0){
       flag = true;
   }
-  if (dataSensor.VLdistance > pushUpThresholdVL && dataSensor.VLdistance <=pushUpThresholdup_up && flag == true){
+  if (VLdistance > pushUpThresholdVL && VLdistance <=pushUpThresholdup_up && flag == true){
       pushUpSkor += 1;
       flag = false;
   }
