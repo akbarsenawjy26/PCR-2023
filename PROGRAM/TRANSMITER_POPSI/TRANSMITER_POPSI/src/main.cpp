@@ -15,7 +15,7 @@
 uint16_t VLdistance;
 
 //ESPNOW
-uint8_t broadcastAddress[] = {0x08, 0xB6, 0x1F, 0x75, 0x60, 0x94};
+uint8_t broadcastAddress[] = {0xD4, 0xD4, 0xDA, 0xE2, 0x50, 0xAC};
 
 typedef struct struct_message
 {
@@ -185,6 +185,10 @@ int mode_tampilan = 0;
 const int up_pin = 15;
 const int down_pin = 2;
 const int set_pin = 32;
+
+// const int up_pin = 15;
+// const int down_pin = 2;
+// const int set_pin = 32;
 
 
 //-----------------------------Button Finish------------
@@ -423,10 +427,11 @@ void getSkor() {
     VLdistance = 1000;
   }
   display.clearDisplay();
-  display.setTextSize(2);
+  display.setTextSize(1.8);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
-  display.println("VL-mode");
+  display.println("Push Up Count");
+  display.setTextSize(2);
   display.setCursor(0, 20);
   display.println("Count:");
   display.setCursor(80, 20);
@@ -646,10 +651,11 @@ void loop()
       if(tombol_set_ditekan != lastbuttonstate_set){
         if((tombol == 0) && (tombol_set_ditekan == HIGH)){
           display.clearDisplay();
-          setup_wifi();
-          client.setServer(mqttServer, 1883);
-          client.setCallback(callback);
-          mode_tampilan = 2;
+          // setup_wifi();
+          // client.setServer(mqttServer, 1883);
+          // client.setCallback(callback);
+          // mode_tampilan = 2;
+          mode_tampilan = 12;
         }else if((tombol == 1) && (tombol_set_ditekan == HIGH)){
           mode_tampilan = 3;
         }else if((tombol == 2) && (tombol_set_ditekan == HIGH)){
